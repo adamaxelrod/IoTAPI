@@ -8,7 +8,7 @@ import com.iot.api.resources.DeviceData;
 public interface DeviceServiceInterface {
 
 	public List<Device> getAllDevices();
-	public Device getDeviceById(Long id);
+	public Device getDevice(String name);
 	
 	public void createDevice(Device dev);
 	

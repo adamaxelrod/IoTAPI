@@ -11,8 +11,10 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.PathVariable;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.repository.query.Param;
 import org.springframework.http.HttpStatus;
 
 import org.springframework.http.ResponseEntity;
@@ -35,11 +37,9 @@ public class DeviceController {
 	//Incremental counter for dynamic, unique id generation
     private final AtomicLong counter = new AtomicLong();
 
-    
-    @RequestMapping(method=RequestMethod.GET, value="/device/{id}")
-    public ResponseEntity<?> getDevice(@RequestParam(value="name", defaultValue="TestDevice") String name) {    	
-    	//automatically returns as JSON due to Jackson being part of the project
-    	return new ResponseEntity<Device>(new Device(counter.incrementAndGet(), name), HttpStatus.OK);
+    @RequestMapping(method=RequestMethod.GET, value="/{name}")
+    public ResponseEntity<?> getDeviceByName(@PathVariable("name")  String name) {
+    	return new ResponseEntity<Device>(deviceService.getDevice(name), HttpStatus.OK);
     }
     
     

@@ -23,9 +23,9 @@ public class DeviceServiceImpl implements DeviceServiceInterface {
 	}
 
 	@Override
-	public Device getDeviceById(Long id) {
+	public Device getDevice(String name) {
 		// TODO Auto-generated method stub
-		return null;
+		return repository.findByName(name);
 	}
 
 	@Override

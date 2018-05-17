@@ -1,13 +1,12 @@
 package com.iot.api.resources;
 
-import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.*;
 
 
 @Document(collection="devices")
 public class Device {
 
-		@Id Object id;
+		private Object devId;
 		private String name;
 		
 		public Device() {
@@ -23,14 +22,14 @@ public class Device {
 		 * @return the id
 		 */
 		public Object getId() {
-			return id;
+			return devId;
 		}
 
 		/**
 		 * @param id the id to set
 		 */
 		public void setId(Long id) {
-			this.id = id;
+			this.devId = id;
 		}
 
 		/**

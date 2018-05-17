@@ -10,5 +10,7 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface DeviceRepository extends MongoRepository<Device, String> {
-	List<Device> findById(@Param("id") long id);
+		Device findById(@Param("id") Long id);
+		Device findByName(@Param("name") String name);
+
 }
