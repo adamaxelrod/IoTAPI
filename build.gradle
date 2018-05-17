@@ -1,3 +1,19 @@
+//apply from: 'tasks.gradle'
+//processResources.dependsOn copyConfiguration
+
+loadConfiguration()
+
+def loadConfiguration() {
+	def environment = property('env') ? env : 'dev'
+	setProperty 'env', environment
+	println("Copying to: " + environment)
+	copy {
+		from "src/main/environment/$environment"
+		into "src/main/resources"
+		include "**/*"
+	}
+}
+
 buildscript {
 	ext {
 		springBootVersion = '2.0.2.RELEASE'
@@ -30,6 +46,9 @@ repositories {
 	mavenCentral()
 }
 
+wrapper {
+	distributionType = Wrapper.DistributionType.ALL
+}
 
 dependencies {
 	compile('org.springframework.boot:spring-boot-starter-data-mongodb')
@@ -37,7 +56,8 @@ dependencies {
 	compile('org.springframework.boot:spring-boot-starter-jersey')
 	compile('org.springframework.boot:spring-boot-starter-web')
     compile("org.springframework.boot:spring-boot-starter-actuator")
-  
+    compile("com.googlecode.json-simple:json-simple:1.1.1")
+	
     compile group: 'org.apache.logging.log4j', name: 'log4j-api', version: '2.11.0'
     compile group: 'org.apache.logging.log4j', name: 'log4j-core', version: '2.11.0'
   

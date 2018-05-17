@@ -29,9 +29,9 @@ public class DeviceServiceImpl implements DeviceServiceInterface {
 	}
 
 	@Override
-	public void createDevice(Device dev) {
-		// TODO Auto-generated method stub
-
+	public void createDevice(Long id, Device dev) {
+		dev.setId(id);
+		repository.insert(dev);
 	}
 
 	@Override

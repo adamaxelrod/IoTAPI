@@ -10,7 +10,7 @@ public interface DeviceServiceInterface {
 	public List<Device> getAllDevices();
 	public Device getDevice(String name);
 	
-	public void createDevice(Device dev);
+	public void createDevice(Long id, Device dev);
 	
 	public Device deleteDeviceById(Long id);
 	
