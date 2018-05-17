@@ -11,18 +11,23 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import org.springframework.http.HttpStatus;
-import org.springframework.http.HttpHeaders;
 
 import org.springframework.http.ResponseEntity;
 
 import com.iot.api.resources.Device;
+import com.iot.api.service.DeviceServiceInterface;
 
 
 @RestController
 @RequestMapping("/device")
 public class DeviceController {
+	
+	@Autowired
+	private DeviceServiceInterface deviceService;
+	
 	
 	//Default Logging using log4j
 	public static final Log logger = LogFactory.getLog(DeviceController.class);
@@ -32,20 +37,22 @@ public class DeviceController {
 
     
     @RequestMapping(method=RequestMethod.GET, value="/device/{id}")
-    public ResponseEntity<?> getDevice(@RequestParam(value="name", defaultValue="TestDevice") String name) {
-        //automatically returns as JSON due to Jackson being part of the project
+    public ResponseEntity<?> getDevice(@RequestParam(value="name", defaultValue="TestDevice") String name) {    	
+    	//automatically returns as JSON due to Jackson being part of the project
     	return new ResponseEntity<Device>(new Device(counter.incrementAndGet(), name), HttpStatus.OK);
     }
     
     
     @RequestMapping(method=RequestMethod.GET)
     public ResponseEntity<List<Device>> getAllDevices(@RequestParam(value="name", defaultValue="TestDevice") String name) {
-        //automatically returns as JSON due to Jackson being part of the project
-    	List<Device> devList = new ArrayList<Device>();
+    	List<Device> devList = deviceService.getAllDevices();
+    	
+    	//automatically returns as JSON due to Jackson being part of the project
+   /* 	List<Device> devList = new ArrayList<Device>();
     	devList.add(new Device(counter.incrementAndGet(), "test1"));
     	devList.add(new Device(counter.incrementAndGet(), "test2"));
     	devList.add(new Device(counter.incrementAndGet(), "test3"));
-    	
+    */	
     	return new ResponseEntity<List<Device>>(devList, HttpStatus.OK);
     }
 }
