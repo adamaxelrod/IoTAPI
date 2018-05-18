@@ -53,42 +53,67 @@ public class DeviceDataServiceImpl implements DeviceDataServiceInterface, Custom
 			sec.setSecTemperature(info.getTemperature());
 			sec.setSecTimestamp(currDate);
 			
-			 for (MonthData month : dev.getYearData().getMonthData()) {
-			        for (DayData day : month.getDayData()) {
-			        	for (HourData hour : day.getHourData()) {
-			        		for (MinuteData min : hour.getMinData()) {
-			        			System.out.println("FOUND MIN: " + min.getMinTimestamp());
-			        			System.out.println("ACTUAL MIN: " + DateUtil.getMinDate(currDate));
-			        			
-			        			Query sQuery = new Query();
-					            Criteria sCriteria = Criteria.where("yearData.$.minTimestamp").is((DateUtil.getMinDate(currDate)));
-					            
-					            Update secUpdate = new Update();
-					            secUpdate.push("secData", sec);
-					            
-					            UpdateResult sUpdateResult = mongoTemplate.updateFirst(sQuery, secUpdate, DeviceData.class);
-					            
-					            if (sUpdateResult.getModifiedCount() == 0) {
-					            	System.out.println("MODIFIED 0");
-					                Query pQuery = new Query();
-					                Criteria pCriteria = Criteria.where("yearData.$.minTimestamp").is((DateUtil.getMinDate(currDate)));
-					                pQuery.addCriteria(pCriteria);
-					                Update pUpdate = new Update();
-					                pUpdate.push("yearData.$.secData", sec);
-					                mongoTemplate.updateFirst(pQuery, pUpdate, DeviceData.class);
-					            }
-			        		}
-			        	}		        
-			        }
-			    }
+			for (MonthData month : dev.getYearData().getMonthData()) {
+				for (DayData day : month.getDayData()) {
+					for (HourData hour : day.getHourData()) {
+						for (MinuteData min : hour.getMinData()) {
+							System.out.println("FOUND MIN: " + min.getMinTimestamp());
+							System.out.println("ACTUAL MIN: " + DateUtil.getMinDate(currDate));
+
+							//Update existing minute data
+							if (DateUtil.getMinDate(currDate).equals(min.getMinTimestamp())) {
+								System.out.println("Same Minute");
+								min.getSecData().add(sec);
+								
+								Query query = new Query(Criteria.where("name").is(info.getName()));
+								Update update = new Update();
+								update.set("yearData.monthData.dayData.hourData.minData", min);
+								mongoTemplate.findAndModify(query, update, FindAndModifyOptions.options().upsert(true), DeviceData.class);
+							}
+							//Otherwise add new minute data object
+							else {
+								System.out.println("Diff Minute");
+								MinuteData newMin = new MinuteData();
+								newMin.setMinTimestamp(DateUtil.getMinDate(currDate));
+								newMin.getSecData().add(sec);
+								
+								Query query = new Query(Criteria.where("name").is(info.getName()));
+								Update update = new Update();
+								update.push("yearData.$.minData", newMin);
+								mongoTemplate.findAndModify(query, update, FindAndModifyOptions.options().upsert(true), DeviceData.class);
+							}
+
+							/*
+							Query sQuery = new Query();
+							Criteria sCriteria = Criteria.where("name").is(info.getName())
+														.and("yearData.monthData.dayData.hourData.minData.$.minTimestamp").is((DateUtil.getMinDate(currDate)));
+
+							Update secUpdate = new Update();
+							secUpdate.push("secData", sec);
+
+							UpdateResult sUpdateResult = mongoTemplate.updateFirst(sQuery, secUpdate, DeviceData.class);
+
+							if (sUpdateResult.getModifiedCount() == 0) {
+								System.out.println("MODIFIED 0");
+								Query pQuery = new Query();
+								Criteria pCriteria = Criteria.where("yearData.monthData.dayData.hourData.minData.$.minTimestamp").is((DateUtil.getMinDate(currDate)));
+								pQuery.addCriteria(pCriteria);
+								Update pUpdate = new Update();
+								pUpdate.push("secData", sec);
+								mongoTemplate.updateFirst(pQuery, pUpdate, DeviceData.class);
+							}
+							*/
+						}
+					}		        
+				}
+			}
 			 
-			Query query = new Query(Criteria.where("name").is(info.getName()));
-			Update update = new Update();
-			update.push("yearData.monthData.dayData.hourData.minData.secData", sec);
+		//	Query query = new Query(Criteria.where("name").is(info.getName()));
+		//	Update update = new Update();
+		//	update.push("yearData.monthData.dayData.hourData.minData.secData", sec);
 			
-			mongoTemplate.findAndModify(query, update, FindAndModifyOptions.options().upsert(true), DeviceData.class);
+		//	mongoTemplate.findAndModify(query, update, FindAndModifyOptions.options().upsert(true), DeviceData.class);
 		}
- 		//repository.save(dev);		
 	}
 
 	@Override
