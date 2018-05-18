@@ -3,7 +3,6 @@ package com.iot.api.resources;
 import java.util.Date;
 
 import org.springframework.data.mongodb.core.mapping.*;
-import org.springframework.data.mongodb.core.index.*;
 import org.springframework.data.annotation.Id;
 
 
@@ -19,12 +18,10 @@ public class DeviceData {
 
 	private Date timeStamp;
 	
-	private double temperature;
-	
-	private MinuteData minData;
+	private YearData yearData;
 	
 	public DeviceData() {
-		minData = new MinuteData();
+		yearData = new YearData();
 		timeStamp = DateUtil.getMinDate(new Date());
 	}
 	
@@ -42,22 +39,20 @@ public class DeviceData {
 		this.name = name;
 	}
 
-
 	/**
-	 * @return the minData
+	 * @return the yearData
 	 */
-	public MinuteData getMin() {
-		return minData;
+	public YearData getYearData() {
+		return yearData;
 	}
 
 	/**
-	 * @param minData the minData to set
+	 * @param yearData the yearData to set
 	 */
-	public void setMin(MinuteData min) {
-		this.minData = min;
+	public void setYearData(YearData year) {
+		this.yearData = year;
 	}
 	
-
 	/**
 	 * @return the timeStamp
 	 */
@@ -69,18 +64,6 @@ public class DeviceData {
 	 */
 	public void setTimeStamp(Date timeStamp) {
 		this.timeStamp = timeStamp;
-	}
-	/**
-	 * @return the temperature
-	 */
-	public double getTemperature() {
-		return temperature;
-	}
-	/**
-	 * @param temperature the temperature to set
-	 */
-	public void setTemperature(double temperature) {
-		this.temperature = temperature;
 	}
 	
 }

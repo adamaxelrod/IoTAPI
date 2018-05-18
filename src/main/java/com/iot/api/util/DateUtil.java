@@ -4,6 +4,37 @@ import java.util.*;
 
 public class DateUtil {
 
+	
+	public static Date getMonthDate(Date date) {
+		Calendar calendar = Calendar.getInstance();
+		calendar.setTime(date);
+		calendar.set(Calendar.MILLISECOND, 0);
+		calendar.set(Calendar.SECOND, 0);
+		calendar.set(Calendar.MINUTE, 0);
+		calendar.set(Calendar.HOUR, 0);
+		return calendar.getTime();		    	
+	}
+	
+	public static Date getDayDate(Date date) {
+		Calendar calendar = Calendar.getInstance();
+		calendar.setTime(date);
+		calendar.set(Calendar.MILLISECOND, 0);
+		calendar.set(Calendar.SECOND, 0);
+		calendar.set(Calendar.MINUTE, 0);
+		calendar.set(Calendar.HOUR, 0);
+		return calendar.getTime();		    	
+	}
+	
+	public static Date getHourDate(Date date) {
+		Calendar calendar = Calendar.getInstance();
+		calendar.setTime(date);
+		calendar.set(Calendar.MILLISECOND, 0);
+		calendar.set(Calendar.SECOND, 0);
+		calendar.set(Calendar.MINUTE, 0);
+		calendar.set(Calendar.HOUR, date.getHours());
+		return calendar.getTime();		    	
+	}
+	
 	public static Date getMinDate(Date date) {
 		Calendar calendar = Calendar.getInstance();
 		calendar.setTime(date);
