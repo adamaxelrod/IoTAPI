@@ -24,20 +24,17 @@ public class DeviceServiceImpl implements DeviceServiceInterface {
 
 	@Override
 	public Device getDevice(String name) {
-		// TODO Auto-generated method stub
 		return repository.findByName(name);
 	}
 
 	@Override
-	public void createDevice(Long id, Device dev) {
-		dev.setId(id);
+	public void createDevice(Device dev) {
 		repository.insert(dev);
 	}
 
 	@Override
-	public Device deleteDeviceById(Long id) {
-		// TODO Auto-generated method stub
-		return null;
+	public void deleteDeviceByName(String name) {
+		repository.deleteBy(name);
 	}
 
 	@Override

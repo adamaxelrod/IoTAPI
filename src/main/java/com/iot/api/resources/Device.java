@@ -46,6 +46,9 @@ public class Device {
 			this.name = name;
 		}
 
-		
+		@Override
+		public String toString() {
+			return "Id: " + devId.toString() + ", Name: " + name;
+		}
 		
 }

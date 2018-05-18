@@ -2,28 +2,62 @@ package com.iot.api.resources;
 
 import java.util.Date;
 
+import org.springframework.data.mongodb.core.mapping.*;
+import org.springframework.data.mongodb.core.index.*;
+import org.springframework.data.annotation.Id;
+
+
+import com.iot.api.util.DateUtil;
+
+@Document(collection="deviceData")
 public class DeviceData {
 
-	private Device devInfo;
+	@Id
+	private String id;
+	
+	private String name;
+
 	private Date timeStamp;
+	
 	private double temperature;
 	
+	private MinuteData minData;
+	
 	public DeviceData() {
-		
+		minData = new MinuteData();
+		timeStamp = DateUtil.getMinDate(new Date());
 	}
 	
 	/**
-	 * @return the devInfo
+	 * @return the name
 	 */
-	public Device getDevInfo() {
-		return devInfo;
+	public String getName() {
+		return name;
 	}
+
 	/**
-	 * @param devInfo the devInfo to set
+	 * @param name the name to set
 	 */
-	public void setDevInfo(Device devInfo) {
-		this.devInfo = devInfo;
+	public void setName(String name) {
+		this.name = name;
 	}
+
+
+	/**
+	 * @return the minData
+	 */
+	public MinuteData getMin() {
+		return minData;
+	}
+
+	/**
+	 * @param minData the minData to set
+	 */
+	public void setMin(MinuteData min) {
+		this.minData = min;
+	}
+	
+
 	/**
 	 * @return the timeStamp
 	 */

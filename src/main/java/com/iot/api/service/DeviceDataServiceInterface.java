@@ -2,17 +2,17 @@ package com.iot.api.service;
 
 import java.util.List;
 
-import com.iot.api.resources.Device;
 import com.iot.api.resources.DeviceData;
+import com.iot.api.resources.InputDeviceInfo;
 
-public interface DeviceServiceInterface {
+public interface DeviceDataServiceInterface {
 
-	public List<Device> getAllDevices();
-	public Device getDevice(String name);
+	public List<DeviceData> getAllDevices();
+	public DeviceData getDevice(String name);
 	
-	public void createDevice(Device dev);
+	public void addEntry(DeviceData dev, InputDeviceInfo info);
 	
-	public void deleteDeviceByName(String name);
+	public void deleteEntry(String name);
 	
 	public List<DeviceData> getDeviceDataForLastHour();
 	public List<DeviceData> getDeviceDataForLastDay();

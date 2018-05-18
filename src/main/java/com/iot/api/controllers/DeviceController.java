@@ -2,8 +2,7 @@ package com.iot.api.controllers;
 
 
 import java.util.concurrent.atomic.AtomicLong;
-import java.util.List;
-import java.util.ArrayList;
+import java.util.*;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -17,13 +16,19 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.http.MediaType;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.repository.query.Param;
 import org.springframework.http.HttpStatus;
 
 import org.springframework.http.ResponseEntity;
 
 import com.iot.api.resources.Device;
+import com.iot.api.resources.DeviceData;
+import com.iot.api.resources.MinuteData;
+import com.iot.api.resources.SecondData;
+import com.iot.api.resources.InputDeviceInfo;
+
 import com.iot.api.service.DeviceServiceInterface;
+import com.iot.api.util.DateUtil;
+import com.iot.api.service.DeviceDataServiceInterface;
 
 import org.json.simple.JSONObject;
 
@@ -35,6 +40,10 @@ public class DeviceController {
 	@Autowired
 	private DeviceServiceInterface deviceService;
 	
+	@Autowired
+	private DeviceDataServiceInterface dataService;
+	
+	
 	//Default Logging using log4j
 	public static final Log logger = LogFactory.getLog(DeviceController.class);
 	
@@ -43,7 +52,7 @@ public class DeviceController {
     
 
     /**
-     * Description: retreives deivce information based on specific device name
+     * Description: retrieves device information based on specific device name
      * @GET /device/{name}/
      */
     @RequestMapping(method=RequestMethod.GET, value="/{name}", produces=MediaType.APPLICATION_JSON_VALUE)
@@ -98,12 +107,12 @@ public class DeviceController {
      * @Description: retrieves device configuration information for all devices 
      * @POST /device
      */
-    @RequestMapping(method=RequestMethod.POST,  produces = MediaType.APPLICATION_JSON_VALUE)
+    @RequestMapping(method=RequestMethod.POST,  produces=MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<?> addDevice(@RequestBody Device newDevice) {
     	
     	try {
     		if (deviceService != null) {
-    			 deviceService.createDevice(counter.getAndIncrement(), newDevice);
+    			 deviceService.createDevice(newDevice);
     		}
     	}
     	catch(Exception e) {
@@ -112,6 +121,88 @@ public class DeviceController {
     	}	
     	    	
     	return new ResponseEntity<Device>(newDevice, HttpStatus.OK);
+    }
+    
+    
+    /**
+     * @Description: retrieves device configuration information for all devices 
+     * @DELETE /device
+     */
+    @RequestMapping(method=RequestMethod.DELETE, value="/{name}", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<?> deleteDevice(@PathVariable("name") String name) {
+    	
+    	try {
+    		if (deviceService != null) {
+    			 deviceService.deleteDeviceByName(name);
+    		}
+    	}
+    	catch(Exception e) {
+    		//Default handling to ensure no incorrect data is returned
+    		return new ResponseEntity<JSONObject>(getDefaultErrorMessage(), HttpStatus.BAD_REQUEST);
+    	}	
+    	    	
+    	return new ResponseEntity<JSONObject>(getDefaultSuccessMessage(), HttpStatus.OK);
+    }
+    
+    
+    /**
+     * @Description: retrieves device configuration information for all devices 
+     * @GET /device
+     */
+    @RequestMapping(method=RequestMethod.GET,  value="/data", produces=MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<List<DeviceData>> getAllDeviceData(@RequestParam(value="name", defaultValue="TestDevice") String name) {
+    	List<DeviceData> devList = null;
+    	
+    	try {
+    		if (dataService != null) {
+    			devList = dataService.getAllDevices();
+    		}
+    	}
+    	catch(Exception e) {
+    		//Default handling to ensure no incorrect data is returned
+    		devList = null;
+    	}	
+    	
+    	if (devList == null) {    	    		
+    		return new ResponseEntity<List<DeviceData>>(devList, HttpStatus.BAD_REQUEST);
+    	}
+    	
+    	return new ResponseEntity<List<DeviceData>>(devList, HttpStatus.OK);
+    }
+    
+    
+    /**
+     * @Description: retrieves device configuration information for all devices 
+     * @POST /device
+     */
+    @RequestMapping(method=RequestMethod.POST,  value="/data", produces=MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<?> addDeviceData(@RequestBody InputDeviceInfo newData) {
+    	DeviceData data = null;
+    	try {    		    		
+    		data = dataService.getDevice(newData.getName());
+    		
+    		if (dataService != null) {
+    			 dataService.addEntry(data, newData);
+    		}
+    	}
+    	catch(Exception e) {
+    		e.printStackTrace(System.out);
+    		//Default handling to ensure no incorrect data is returned
+    		return new ResponseEntity<JSONObject>(getDefaultErrorMessage(), HttpStatus.BAD_REQUEST);
+    	}	
+    	    	
+    	return new ResponseEntity<DeviceData>(data, HttpStatus.OK);
+    }
+    
+    
+    /**
+     * @Description: returns a basic JSON response to indicate a general error occurred
+     */
+    private JSONObject getDefaultSuccessMessage() {
+    	JSONObject resp = new JSONObject();
+		resp.put("message", "Successfully deleted");
+		
+		return resp;
     }
     
     
