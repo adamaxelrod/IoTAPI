@@ -40,114 +40,143 @@ public class DeviceDataServiceImpl implements DeviceDataServiceInterface, Custom
 		return repository.findDeviceByName(name);
 	}
 
+	/**
+	 * addEntry
+	 * @Description: This will add the new data point to the corresponding device
+	 */
 	@Override
 	public void addEntry(DeviceData dev, InputDeviceInfo info) {
-		Date currDate = new Date();
+		//Timestamp for new data point
+		Date currDate = DateUtil.getFullDate(new Date());
 
 		if (dev == null) {			
 			dev = initializeDevice(info);
 			repository.save(dev);
 		}
 		else {
+			//Create new data point object (SecondData)
 			SecondData sec = new SecondData();
 			sec.setSecTemperature(info.getTemperature());
 			sec.setSecTimestamp(currDate);
 			
-			for (MonthData month : dev.getYearData().getMonthData()) {
-				for (DayData day : month.getDayData()) {
-					for (HourData hour : day.getHourData()) {
-						for (MinuteData min : hour.getMinData()) {
-							System.out.println("FOUND MIN: " + min.getMinTimestamp());
-							System.out.println("ACTUAL MIN: " + DateUtil.getMinDate(currDate));
-
-							//Update existing minute data
-							if (DateUtil.getMinDate(currDate).equals(min.getMinTimestamp())) {
-								System.out.println("Same Minute");
-								min.getSecData().add(sec);
-								
-								Query query = new Query(Criteria.where("name").is(info.getName()));
-								Update update = new Update();
-								update.set("yearData.monthData.dayData.hourData.minData", min);
-								mongoTemplate.findAndModify(query, update, FindAndModifyOptions.options().upsert(true), DeviceData.class);
-							}
-							//Otherwise add new minute data object
-							else {
-								System.out.println("Diff Minute");
-								MinuteData newMin = new MinuteData();
-								newMin.setMinTimestamp(DateUtil.getMinDate(currDate));
-								newMin.getSecData().add(sec);
-								
-								Query query = new Query(Criteria.where("name").is(info.getName()));
-								Update update = new Update();
-								update.push("yearData.$.minData", newMin);
-								mongoTemplate.findAndModify(query, update, FindAndModifyOptions.options().upsert(true), DeviceData.class);
-							}
-
-							/*
-							Query sQuery = new Query();
-							Criteria sCriteria = Criteria.where("name").is(info.getName())
-														.and("yearData.monthData.dayData.hourData.minData.$.minTimestamp").is((DateUtil.getMinDate(currDate)));
-
-							Update secUpdate = new Update();
-							secUpdate.push("secData", sec);
-
-							UpdateResult sUpdateResult = mongoTemplate.updateFirst(sQuery, secUpdate, DeviceData.class);
-
-							if (sUpdateResult.getModifiedCount() == 0) {
-								System.out.println("MODIFIED 0");
-								Query pQuery = new Query();
-								Criteria pCriteria = Criteria.where("yearData.monthData.dayData.hourData.minData.$.minTimestamp").is((DateUtil.getMinDate(currDate)));
-								pQuery.addCriteria(pCriteria);
-								Update pUpdate = new Update();
-								pUpdate.push("secData", sec);
-								mongoTemplate.updateFirst(pQuery, pUpdate, DeviceData.class);
-							}
-							*/
+			//Query to see if there is data for this minute already
+			Query minQuery = new Query(Criteria.where("name").is(info.getName()).and("yearData.monthData.dayData.hourData.minData.minTimestamp").is(DateUtil.getMinDate(currDate)));			
+			List<DeviceData> minQueryList = mongoTemplate.find(minQuery, DeviceData.class);
+			
+			//If there is no data for this minute, add a new minute object
+			if (minQueryList != null && minQueryList.size() == 0) {
+				//Query to see if there is data for this minute already
+				Query hourQuery = new Query(Criteria.where("name").is(info.getName()).and("yearData.monthData.dayData.hourData.hourTimestamp").is(DateUtil.getHourDate(currDate)));			
+				List<DeviceData> hourQueryList = mongoTemplate.find(hourQuery, DeviceData.class);
+			
+				MinuteData newMin = new MinuteData();
+				newMin.setMinTimestamp(DateUtil.getMinDate(currDate));
+				newMin.getSecData().add(sec);
+				
+				//If there is no data for this hour, add a new hour object (and minute, second objects as well)
+				if (hourQueryList != null && hourQueryList.size() == 0) {
+					//Query to see if there is data for this minute already
+					Query dayQuery = new Query(Criteria.where("name").is(info.getName()).and("yearData.monthData.dayData.dayTimestamp").is(DateUtil.getDayDate(currDate)));						
+					List<DeviceData> dayQueryList = mongoTemplate.find(dayQuery, DeviceData.class);
+					
+					HourData newHour = new HourData();
+					newHour.setHourTimestamp(DateUtil.getHourDate(currDate));
+					newHour.getMinData().add(newMin);
+					
+					//If there is no data for this day, add a new day object (and hour, minute, second objects as well)
+					if (dayQueryList != null && dayQueryList.size() == 0) {
+						//Query to see if there is data for this minute already
+						Query monthQuery = new Query(Criteria.where("name").is(info.getName()).and("yearData.monthData.monthTimestamp").is(DateUtil.getMonthDate(currDate)));						
+						List<DeviceData> monthQueryList = mongoTemplate.find(dayQuery, DeviceData.class);
+						
+						if (monthQueryList != null && monthQueryList.size() == 0) {
+							/**
+							 * TODO
+							 */
 						}
-					}		        
+						else {
+							DayData newDay = new DayData();
+							newDay.setDayTimestamp(DateUtil.getDayDate(currDate));
+							newDay.getHourData().add(newHour);
+						}
+					}
+					//Day data exists, just add a new hour data point
+					else {
+						Update dayUpdate = new Update();
+						dayUpdate.addToSet("yearData.monthData.0.dayData.$[].hourData", newHour);
+						mongoTemplate.upsert(dayQuery, dayUpdate, DeviceData.class);	
+					}
+				}
+				//Hour data exists, just add a new minute data point
+				else {
+					Update hourUpdate = new Update();
+					hourUpdate.addToSet("yearData.monthData.0.dayData.0.hourData.$[].minData", newMin);
+					mongoTemplate.upsert(hourQuery, hourUpdate, DeviceData.class);		
 				}
 			}
-			 
-		//	Query query = new Query(Criteria.where("name").is(info.getName()));
-		//	Update update = new Update();
-		//	update.push("yearData.monthData.dayData.hourData.minData.secData", sec);
-			
-		//	mongoTemplate.findAndModify(query, update, FindAndModifyOptions.options().upsert(true), DeviceData.class);
+			//Minute data exits, just append a new second data point
+			else {
+				Update update = new Update();
+				update.addToSet("yearData.monthData.0.dayData.0.hourData.0.minData.$[].secData", sec);
+				mongoTemplate.findAndModify(minQuery, update, DeviceData.class);				
+			}		 
 		}
 	}
 
 	@Override
-	public void deleteEntry(String name) {
-		// TODO Auto-generated method stub
-		
+	public void deleteDeviceData(String name) {
+		repository.deleteBy(name);		
 	}
 
 	@Override
-	public List<DeviceData> getDeviceDataForLastHour() {
+	public MinuteData getDeviceDataForLastMinute(String name) {
+		//Timestamp for the current minute
+		Date currMinDate = DateUtil.getMinDate(new Date());
+		System.out.println("CURRMINDATE: " + currMinDate.toString());
+		try {
+			//Query to see if there is data for this minute already for this device
+			Query minQuery = new Query(Criteria.where("name").is(name).and("yearData.monthData.dayData.hourData.minData.minTimestamp").is(currMinDate));
+			List<MinuteData> minQueryList = mongoTemplate.find(minQuery, MinuteData.class);
+			
+			if (minQueryList != null && minQueryList.size() > 0) {
+				return minQueryList.get(0);
+			}
+			
+			System.out.println("NO DATA");
+		}
+		catch (Exception e) {
+			//TODO: replace with logger
+			e.printStackTrace(System.out);
+		}
+		return new MinuteData();
+	}
+	
+	@Override
+	public List<DeviceData> getDeviceDataForLastHour(String name) {
 		// TODO Auto-generated method stub
 		return null;
 	}
 
 	@Override
-	public List<DeviceData> getDeviceDataForLastDay() {
+	public List<DeviceData> getDeviceDataForLastDay(String name) {
 		// TODO Auto-generated method stub
 		return null;
 	}
 
 	@Override
-	public List<DeviceData> getDeviceDataForLastWeek() {
+	public List<DeviceData> getDeviceDataForLastWeek(String name) {
 		// TODO Auto-generated method stub
 		return null;
 	}
 
 	@Override
-	public List<DeviceData> getDeviceDataForLastMonth() {
+	public List<DeviceData> getDeviceDataForLastMonth(String name) {
 		// TODO Auto-generated method stub
 		return null;
 	}
 
 	@Override
-	public List<DeviceData> getDeviceDataForLastYear() {
+	public List<DeviceData> getDeviceDataForLastYear(String name) {
 		// TODO Auto-generated method stub
 		return null;
 	}
@@ -158,9 +187,14 @@ public class DeviceDataServiceImpl implements DeviceDataServiceInterface, Custom
 		
 	}
 
-	
+	/**
+	 * initializeInfo
+	 * @Description: This will initialize the first entry for a device data object
+	 * @param info
+	 * @return
+	 */
 	private DeviceData initializeDevice(InputDeviceInfo info) {
-		Date currDate = new Date();
+		Date currDate = DateUtil.getFullDate(new Date());
 		DeviceData dev = new DeviceData();
 		dev.setName(info.getName());
 		

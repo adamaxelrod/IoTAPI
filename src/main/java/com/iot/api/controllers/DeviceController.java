@@ -146,8 +146,8 @@ public class DeviceController {
     
     
     /**
-     * @Description: retrieves device configuration information for all devices 
-     * @GET /device
+     * @Description: retrieves device data information for all devices 
+     * @GET /device/data
      */
     @RequestMapping(method=RequestMethod.GET,  value="/data", produces=MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<List<DeviceData>> getAllDeviceData(@RequestParam(value="name", defaultValue="TestDevice") String name) {
@@ -172,8 +172,63 @@ public class DeviceController {
     
     
     /**
+     * @Description: retrieves device data information for a specific device
+     * @GET /device/data/{name}
+     */
+    @RequestMapping(method=RequestMethod.GET, value="/data/{name}", produces=MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<?> getDeviceDataByName(@PathVariable(value="name") String name) {
+    	DeviceData dev = null;
+    	
+    	try {
+    		if (dataService != null) {
+    			dev = dataService.getDevice(name);
+    		}
+    	}
+    	catch(Exception e) {
+    		//Default handling to ensure no incorrect data is returned
+    		return new ResponseEntity<JSONObject>(this.getDefaultErrorMessage(), HttpStatus.BAD_REQUEST);
+    	}	
+    	
+    	//Handle service/database down or other error scenarios
+    	if (dev == null) {    	    		
+    		return new ResponseEntity<JSONObject>(this.getDefaultJSONObject(), HttpStatus.OK);
+    	}    	
+    	
+    	return new ResponseEntity<DeviceData>(dev, HttpStatus.OK);
+    }
+    
+    
+    /**
+     * @Description: retrieves device data information for a specific device
+     * @GET /device/data/{name}
+     */
+    @RequestMapping(method=RequestMethod.GET, value="/data/{name}/minute", produces=MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<?> getLastMinuteData(@PathVariable(value="name") String name) {
+    	MinuteData minData = null;
+    	
+    	try {
+    		if (dataService != null) {
+    			minData = dataService.getDeviceDataForLastMinute(name);
+    		}
+    	}
+    	catch(Exception e) {
+    		//Default handling to ensure no incorrect data is returned
+    		return new ResponseEntity<JSONObject>(this.getDefaultErrorMessage(), HttpStatus.BAD_REQUEST);
+    	}	
+    	
+    	//Handle service/database down or other error scenarios
+    	if (minData == null) {    	    		
+    		return new ResponseEntity<JSONObject>(this.getDefaultJSONObject(), HttpStatus.OK);
+    	}    	
+    	
+    	return new ResponseEntity<MinuteData>(minData, HttpStatus.OK);
+    }
+    
+    
+    /**
      * @Description: retrieves device configuration information for all devices 
-     * @POST /device
+     * @POST /device/data
+     * RequestBody example:  {name: "TEST1", temperature: 50.5}
      */
     @RequestMapping(method=RequestMethod.POST,  value="/data", produces=MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<?> addDeviceData(@RequestBody InputDeviceInfo newData) {
@@ -192,6 +247,27 @@ public class DeviceController {
     	}	
     	    	
     	return new ResponseEntity<DeviceData>(data, HttpStatus.OK);
+    }
+    
+    
+    /**
+     * @Description: Deletes device configuration information for a specific device 
+     * @DELETE /device
+     */
+    @RequestMapping(method=RequestMethod.DELETE, value="/data/{name}", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<?> deleteDeviceData(@PathVariable("name") String name) {
+    	
+    	try {
+    		if (dataService != null) {
+    			 dataService.deleteDeviceData(name);
+    		}
+    	}
+    	catch(Exception e) {
+    		//Default handling to ensure no incorrect data is returned
+    		return new ResponseEntity<JSONObject>(getDefaultErrorMessage(), HttpStatus.BAD_REQUEST);
+    	}	
+    	    	
+    	return new ResponseEntity<JSONObject>(getDefaultSuccessMessage(), HttpStatus.OK);
     }
     
     
@@ -231,5 +307,17 @@ public class DeviceController {
 		errList.add(resp);
 		
 		return errList;
+    }
+    
+    
+
+    /**
+     * @Description: returns a basic JSON response to indicate a general error occurred
+     */
+    private JSONObject getDefaultJSONObject() {
+    	JSONObject resp = new JSONObject();
+		resp.put("message", "No Data for the requested device");
+		
+		return resp;
     }
 }

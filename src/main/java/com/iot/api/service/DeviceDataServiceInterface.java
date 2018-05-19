@@ -2,8 +2,7 @@ package com.iot.api.service;
 
 import java.util.List;
 
-import com.iot.api.resources.DeviceData;
-import com.iot.api.resources.InputDeviceInfo;
+import com.iot.api.resources.*;
 
 public interface DeviceDataServiceInterface {
 
@@ -12,11 +11,12 @@ public interface DeviceDataServiceInterface {
 	
 	public void addEntry(DeviceData dev, InputDeviceInfo info);
 	
-	public void deleteEntry(String name);
-	
-	public List<DeviceData> getDeviceDataForLastHour();
-	public List<DeviceData> getDeviceDataForLastDay();
-	public List<DeviceData> getDeviceDataForLastWeek();
-	public List<DeviceData> getDeviceDataForLastMonth();
-	public List<DeviceData> getDeviceDataForLastYear();
+	public void deleteDeviceData(String name);
+
+	public MinuteData getDeviceDataForLastMinute(String name);
+	public List<DeviceData> getDeviceDataForLastHour(String name);
+	public List<DeviceData> getDeviceDataForLastDay(String name);
+	public List<DeviceData> getDeviceDataForLastWeek(String name);
+	public List<DeviceData> getDeviceDataForLastMonth(String name);
+	public List<DeviceData> getDeviceDataForLastYear(String name);
 }

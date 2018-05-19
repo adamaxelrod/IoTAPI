@@ -1,7 +1,5 @@
 package com.iot.api.repository;
 
-import java.util.List;
-
 import com.iot.api.resources.DeviceData;
 
 import org.springframework.data.mongodb.repository.MongoRepository;
@@ -16,5 +14,6 @@ public interface DeviceDataRepository extends MongoRepository<DeviceData, String
 		@Query("{'name': ?0}")
 		public DeviceData findDeviceByName(String name);
 
-	
+		@Query(value="{name : ?0}", delete = true)
+		public Long deleteBy(String name);
 }
