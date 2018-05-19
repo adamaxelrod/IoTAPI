@@ -27,7 +27,6 @@ import com.iot.api.resources.SecondData;
 import com.iot.api.resources.InputDeviceInfo;
 
 import com.iot.api.service.DeviceServiceInterface;
-import com.iot.api.util.DateUtil;
 import com.iot.api.service.DeviceDataServiceInterface;
 
 import org.json.simple.JSONObject;
@@ -45,7 +44,7 @@ public class DeviceController {
 	
 	
 	//Default Logging using log4j
-	public static final Log logger = LogFactory.getLog(DeviceController.class);
+	public static final Log logger = LogFactory.getLog("iotapi");
 	
 	//Incremental counter for dynamic, unique id generation
     private final AtomicLong counter = new AtomicLong();
@@ -204,8 +203,8 @@ public class DeviceController {
      */
     @RequestMapping(method=RequestMethod.GET, value="/data/{name}/minute", produces=MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<?> getLastMinuteData(@PathVariable(value="name") String name) {
-    	MinuteData minData = null;
-    	
+    	JSONObject minData = null;
+
     	try {
     		if (dataService != null) {
     			minData = dataService.getDeviceDataForLastMinute(name);
@@ -221,7 +220,140 @@ public class DeviceController {
     		return new ResponseEntity<JSONObject>(this.getDefaultJSONObject(), HttpStatus.OK);
     	}    	
     	
-    	return new ResponseEntity<MinuteData>(minData, HttpStatus.OK);
+    	return new ResponseEntity<JSONObject>(minData, HttpStatus.OK);
+    }
+    
+    
+    /**
+     * @Description: retrieves device data information for a specific device
+     * @GET /device/data/{name}
+     */
+    @RequestMapping(method=RequestMethod.GET, value="/data/{name}/hour", produces=MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<?> getLastHourData(@PathVariable(value="name") String name) {
+    	JSONObject hourData = null;
+
+    	try {
+    		if (dataService != null) {
+    			hourData = dataService.getDeviceDataForLastHour(name);
+    		}
+    	}
+    	catch(Exception e) {
+    		//Default handling to ensure no incorrect data is returned
+    		return new ResponseEntity<JSONObject>(this.getDefaultErrorMessage(), HttpStatus.BAD_REQUEST);
+    	}	
+    	
+    	//Handle service/database down or other error scenarios
+    	if (hourData == null) {    	    		
+    		return new ResponseEntity<JSONObject>(this.getDefaultJSONObject(), HttpStatus.OK);
+    	}    	
+    	
+    	return new ResponseEntity<JSONObject>(hourData, HttpStatus.OK);
+    }
+    
+    
+    /**
+     * @Description: retrieves device data information for a specific device
+     * @GET /device/data/{name}
+     */
+    @RequestMapping(method=RequestMethod.GET, value="/data/{name}/day", produces=MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<?> getLastDayData(@PathVariable(value="name") String name) {
+    	JSONObject dayData = null;
+
+    	try {
+    		if (dataService != null) {
+    			dayData = dataService.getDeviceDataForLastDay(name);
+    		}
+    	}
+    	catch(Exception e) {
+    		//Default handling to ensure no incorrect data is returned
+    		return new ResponseEntity<JSONObject>(this.getDefaultErrorMessage(), HttpStatus.BAD_REQUEST);
+    	}	
+    	
+    	//Handle service/database down or other error scenarios
+    	if (dayData == null) {    	    		
+    		return new ResponseEntity<JSONObject>(this.getDefaultJSONObject(), HttpStatus.OK);
+    	}    	
+    	
+    	return new ResponseEntity<JSONObject>(dayData, HttpStatus.OK);
+    }
+    
+    
+    /**
+     * @Description: retrieves device data information for a specific device
+     * @GET /device/data/{name}
+     */
+    @RequestMapping(method=RequestMethod.GET, value="/data/{name}/week", produces=MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<?> getLastWeekData(@PathVariable(value="name") String name) {
+    	JSONObject weekData = null;
+
+    	try {
+    		if (dataService != null) {
+    			weekData = dataService.getDeviceDataForLastWeek(name);
+    		}
+    	}
+    	catch(Exception e) {
+    		//Default handling to ensure no incorrect data is returned
+    		return new ResponseEntity<JSONObject>(this.getDefaultErrorMessage(), HttpStatus.BAD_REQUEST);
+    	}	
+    	
+    	//Handle service/database down or other error scenarios
+    	if (weekData == null) {    	    		
+    		return new ResponseEntity<JSONObject>(this.getDefaultJSONObject(), HttpStatus.OK);
+    	}    	
+    	
+    	return new ResponseEntity<JSONObject>(weekData, HttpStatus.OK);
+    }
+    
+    /**
+     * @Description: retrieves device data information for a specific device
+     * @GET /device/data/{name}
+     */
+    @RequestMapping(method=RequestMethod.GET, value="/data/{name}/month", produces=MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<?> getLastMonthData(@PathVariable(value="name") String name) {
+    	JSONObject monthData = null;
+
+    	try {
+    		if (dataService != null) {
+    			monthData = dataService.getDeviceDataForLastMonth(name);
+    		}
+    	}
+    	catch(Exception e) {
+    		//Default handling to ensure no incorrect data is returned
+    		return new ResponseEntity<JSONObject>(this.getDefaultErrorMessage(), HttpStatus.BAD_REQUEST);
+    	}	
+    	
+    	//Handle service/database down or other error scenarios
+    	if (monthData == null) {    	    		
+    		return new ResponseEntity<JSONObject>(this.getDefaultJSONObject(), HttpStatus.OK);
+    	}    	
+    	
+    	return new ResponseEntity<JSONObject>(monthData, HttpStatus.OK);
+    }
+    
+    /**
+     * @Description: retrieves device data information for a specific device
+     * @GET /device/data/{name}
+     */
+    @RequestMapping(method=RequestMethod.GET, value="/data/{name}/year", produces=MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<?> getLastYearData(@PathVariable(value="name") String name) {
+    	JSONObject yearData = null;
+
+    	try {
+    		if (dataService != null) {
+    			yearData = dataService.getDeviceDataForLastYear(name);
+    		}
+    	}
+    	catch(Exception e) {
+    		//Default handling to ensure no incorrect data is returned
+    		return new ResponseEntity<JSONObject>(this.getDefaultErrorMessage(), HttpStatus.BAD_REQUEST);
+    	}	
+    	
+    	//Handle service/database down or other error scenarios
+    	if (yearData == null) {    	    		
+    		return new ResponseEntity<JSONObject>(this.getDefaultJSONObject(), HttpStatus.OK);
+    	}    	
+    	
+    	return new ResponseEntity<JSONObject>(yearData, HttpStatus.OK);
     }
     
     

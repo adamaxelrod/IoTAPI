@@ -22,7 +22,7 @@ public class DeviceData {
 	
 	public DeviceData() {
 		yearData = new YearData();
-		timeStamp = DateUtil.getMinDate(new Date());
+		timeStamp = DateUtil.getMinDate(DateUtil.getCurrDate());
 	}
 	
 	/**

@@ -1,0 +1,11 @@
+.request
+include::{snippets}/device/http-request.adoc[]
+
+.response
+include::{snippets}/device/http-response.adoc[]
+
+.request
+include::{snippets}/deviceData/http-request.adoc[]
+
+.response
+include::{snippets}/deviceData/http-response.adoc[]

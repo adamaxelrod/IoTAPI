@@ -3,7 +3,6 @@ package com.iot.api.service;
 import java.util.List;
 
 import com.iot.api.resources.Device;
-import com.iot.api.resources.DeviceData;
 
 import com.iot.api.repository.DeviceRepository;
 
@@ -36,35 +35,4 @@ public class DeviceServiceImpl implements DeviceServiceInterface {
 	public void deleteDeviceByName(String name) {
 		repository.deleteBy(name);
 	}
-
-	@Override
-	public List<DeviceData> getDeviceDataForLastHour() {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public List<DeviceData> getDeviceDataForLastDay() {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public List<DeviceData> getDeviceDataForLastWeek() {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public List<DeviceData> getDeviceDataForLastMonth() {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public List<DeviceData> getDeviceDataForLastYear() {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
 }

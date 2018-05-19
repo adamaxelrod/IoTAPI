@@ -1,28 +1,27 @@
 package com.iot.api.service;
 
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.bson.Document;
+import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.mongodb.core.FindAndModifyOptions;
-import org.springframework.data.mongodb.core.MongoOperations;
 import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.data.mongodb.core.aggregation.*;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.*;
-
-import com.iot.api.repository.DeviceDataRepository;
-import com.iot.api.repository.CustomMongoRepository;
-
-import com.iot.api.resources.*;
-
-import com.iot.api.util.DateUtil;
-import com.mongodb.client.result.UpdateResult;
-
 import org.springframework.stereotype.Service;
 
+import com.iot.api.repository.DeviceDataRepository;
+import com.iot.api.resources.*;
+import com.iot.api.util.DateUtil;
+
+
 @Service
-public class DeviceDataServiceImpl implements DeviceDataServiceInterface, CustomMongoRepository {
+public class DeviceDataServiceImpl implements DeviceDataServiceInterface {
 
 	@Autowired
 	private  DeviceDataRepository repository;
@@ -30,6 +29,9 @@ public class DeviceDataServiceImpl implements DeviceDataServiceInterface, Custom
 	@Autowired
 	private MongoTemplate mongoTemplate;
 	
+	//Default Logging using log4j
+	public static final Log logger = LogFactory.getLog("iotapi");
+		
 	@Override
 	public List<DeviceData> getAllDevices() {
 		return repository.findAll();
@@ -47,7 +49,7 @@ public class DeviceDataServiceImpl implements DeviceDataServiceInterface, Custom
 	@Override
 	public void addEntry(DeviceData dev, InputDeviceInfo info) {
 		//Timestamp for new data point
-		Date currDate = DateUtil.getFullDate(new Date());
+		Date currDate = DateUtil.getFullDate(DateUtil.getCurrDate());
 
 		if (dev == null) {			
 			dev = initializeDevice(info);
@@ -129,63 +131,161 @@ public class DeviceDataServiceImpl implements DeviceDataServiceInterface, Custom
 	}
 
 	@Override
-	public MinuteData getDeviceDataForLastMinute(String name) {
+	public JSONObject getDeviceDataForLastMinute(String name) {
 		//Timestamp for the current minute
 		Date currMinDate = DateUtil.getMinDate(new Date());
-		System.out.println("CURRMINDATE: " + currMinDate.toString());
+		
 		try {
 			//Query to see if there is data for this minute already for this device
-			Query minQuery = new Query(Criteria.where("name").is(name).and("yearData.monthData.dayData.hourData.minData.minTimestamp").is(currMinDate));
-			List<MinuteData> minQueryList = mongoTemplate.find(minQuery, MinuteData.class);
+			Aggregation aggrQuery = Aggregation.newAggregation(Aggregation.match(Criteria.where("name").is(name)),
+													Aggregation.unwind("$yearData"),
+													Aggregation.unwind("$yearData.monthData"),
+													Aggregation.unwind("$yearData.monthData.dayData"),
+													Aggregation.unwind("$yearData.monthData.dayData.hourData"),
+													Aggregation.unwind("$yearData.monthData.dayData.hourData.minData"),
+												//	Aggregation.match(Criteria.where("yearData.monthData.dayData.hourData.minData.minTimestamp").is(currMinDate)),
+													(Aggregation.project().and("$yearData.monthData.dayData.hourData.minData").as("minData")));
+
+			List<Document> minQueryList = mongoTemplate.aggregate(aggrQuery, "deviceData", Document.class).getMappedResults();
 			
 			if (minQueryList != null && minQueryList.size() > 0) {
-				return minQueryList.get(0);
+				JSONParser parser = new JSONParser();
+				JSONObject minJson = (JSONObject) parser.parse(minQueryList.get(0).toJson());
+				return minJson;
 			}
-			
-			System.out.println("NO DATA");
 		}
 		catch (Exception e) {
-			//TODO: replace with logger
 			e.printStackTrace(System.out);
+			logger.debug(e.getMessage());
 		}
-		return new MinuteData();
+		
+		return null;
 	}
 	
 	@Override
-	public List<DeviceData> getDeviceDataForLastHour(String name) {
+	public JSONObject getDeviceDataForLastHour(String name) {
+		//Timestamp for the current minute
+		Date currMinDate = DateUtil.getMinDate(new Date());
+
+		try {
+			//Query to see if there is data for this minute already for this device
+			Aggregation aggrQuery = Aggregation.newAggregation(Aggregation.match(Criteria.where("name").is(name)),
+					Aggregation.unwind("$yearData"),
+					Aggregation.unwind("$yearData.monthData"),
+					Aggregation.unwind("$yearData.monthData.dayData"),
+					Aggregation.unwind("$yearData.monthData.dayData.hourData"),
+					//	Aggregation.match(Criteria.where("yearData.monthData.dayData.hourData.minData.minTimestamp").is(currMinDate)),
+					(Aggregation.project().and("$yearData.monthData.dayData.hourData").as("hourData")));
+
+			List<Document> hourQueryList = mongoTemplate.aggregate(aggrQuery, "deviceData", Document.class).getMappedResults();
+
+			if (hourQueryList != null && hourQueryList.size() > 0) {
+				JSONParser parser = new JSONParser();
+				JSONObject json = (JSONObject) parser.parse(hourQueryList.get(0).toJson());
+				return json;
+			}
+		}
+		catch (Exception e) {
+			e.printStackTrace(System.out);
+			logger.debug(e.getMessage());
+		}
+
+		return null;
+	}
+
+	@Override
+	public JSONObject getDeviceDataForLastDay(String name) {
+		//Timestamp for the current minute
+		Date currMinDate = DateUtil.getMinDate(new Date());
+
+		try {
+			//Query to see if there is data for this minute already for this device
+			Aggregation aggrQuery = Aggregation.newAggregation(Aggregation.match(Criteria.where("name").is(name)),
+					Aggregation.unwind("$yearData"),
+					Aggregation.unwind("$yearData.monthData"),
+					Aggregation.unwind("$yearData.monthData.dayData"),
+					//	Aggregation.match(Criteria.where("yearData.monthData.dayData.hourData.minData.minTimestamp").is(currMinDate)),
+					(Aggregation.project().and("$yearData.monthData.dayData").as("dayData")));
+
+			List<Document> dayQueryList = mongoTemplate.aggregate(aggrQuery, "deviceData", Document.class).getMappedResults();
+
+			if (dayQueryList != null && dayQueryList.size() > 0) {
+				JSONParser parser = new JSONParser();
+				JSONObject json = (JSONObject) parser.parse(dayQueryList.get(0).toJson());
+				return json;
+			}
+		}
+		catch (Exception e) {
+			e.printStackTrace(System.out);
+			logger.debug(e.getMessage());
+		}
+
+		return null;
+	}
+
+	@Override
+	public JSONObject getDeviceDataForLastWeek(String name) {
 		// TODO Auto-generated method stub
 		return null;
 	}
 
 	@Override
-	public List<DeviceData> getDeviceDataForLastDay(String name) {
-		// TODO Auto-generated method stub
+	public JSONObject getDeviceDataForLastMonth(String name) {
+		//Timestamp for the current minute
+		Date currMinDate = DateUtil.getMinDate(new Date());
+
+		try {
+			//Query to see if there is data for this minute already for this device
+			Aggregation aggrQuery = Aggregation.newAggregation(Aggregation.match(Criteria.where("name").is(name)),
+					Aggregation.unwind("$yearData"),
+					Aggregation.unwind("$yearData.monthData"),
+					//	Aggregation.match(Criteria.where("yearData.monthData.dayData.hourData.minData.minTimestamp").is(currMinDate)),
+					(Aggregation.project().and("$yearData.monthData").as("monthData")));
+
+			List<Document> monthQueryList = mongoTemplate.aggregate(aggrQuery, "deviceData", Document.class).getMappedResults();
+
+			if (monthQueryList != null && monthQueryList.size() > 0) {
+				JSONParser parser = new JSONParser();
+				JSONObject json = (JSONObject) parser.parse(monthQueryList.get(0).toJson());
+				return json;
+			}
+		}
+		catch (Exception e) {
+			e.printStackTrace(System.out);
+			logger.debug(e.getMessage());
+		}
+
 		return null;
 	}
 
 	@Override
-	public List<DeviceData> getDeviceDataForLastWeek(String name) {
-		// TODO Auto-generated method stub
+	public JSONObject getDeviceDataForLastYear(String name) {
+		//Timestamp for the current minute
+		Date currMinDate = DateUtil.getMinDate(new Date());
+
+		try {
+			//Query to see if there is data for this minute already for this device
+			Aggregation aggrQuery = Aggregation.newAggregation(Aggregation.match(Criteria.where("name").is(name)),
+					Aggregation.unwind("$yearData"),
+					//	Aggregation.match(Criteria.where("yearData.monthData.dayData.hourData.minData.minTimestamp").is(currMinDate)),
+					Aggregation.project("yearData"));
+
+			List<Document> yearQueryList = mongoTemplate.aggregate(aggrQuery, "deviceData", Document.class).getMappedResults();
+
+			if (yearQueryList != null && yearQueryList.size() > 0) {
+				JSONParser parser = new JSONParser();
+				JSONObject json = (JSONObject) parser.parse(yearQueryList.get(0).toJson());
+				return json;
+			}
+		}
+		catch (Exception e) {
+			e.printStackTrace(System.out);
+			logger.debug(e.getMessage());
+		}
+
 		return null;
 	}
 
-	@Override
-	public List<DeviceData> getDeviceDataForLastMonth(String name) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public List<DeviceData> getDeviceDataForLastYear(String name) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public void updateCustomDevice(DeviceData dev) {
-		// TODO Auto-generated method stub
-		
-	}
 
 	/**
 	 * initializeInfo
