@@ -48,6 +48,31 @@ Once running, the application can be accessed over the default TCP port 8080 at:
 http://localhost:8080
 
 
+Some of the API calls that are available:
+
+```
+(For key statistics data)
+GET http://localhost:8080/device/data
+GET http://localhost:8080/device/data/{name}
+GET http://localhost:8080/device/data/{name}/minute
+GET http://localhost:8080/device/data/{name}/hour
+GET http://localhost:8080/device/data/{name}/day
+GET http://localhost:8080/device/data/{name}/week
+GET http://localhost:8080/device/data/{name}/month
+GET http://localhost:8080/device/data/{name}/year
+
+
+POST http://localhost:8080/device/data
+
+Request Body format:
+{
+  "name": "<name>",
+  "temperature": <temperature as decimal value>
+}
+
+DELETE http://localhost:88080/device/data/{name}
+```
+
 ## Testing the Application 
 ### Unit Tests
 See the testing folder to find the list of Postman functional and load tests that can be run as:
