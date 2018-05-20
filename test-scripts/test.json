@@ -1,0 +1,22 @@
+[
+    {
+        "name" : "TEST001",
+        "temperature" : 15.1
+    },
+    {
+        "name" : "TEST002",
+        "temperature" : 15.2
+    },
+    {
+        "name" : "TEST003",
+        "temperature" : 15.3
+    },
+    {
+        "name" : "TEST004",
+        "temperature" : 15.4
+    },
+    {
+        "name" : "TEST005",
+        "temperature" : 15.5
+    }
+]

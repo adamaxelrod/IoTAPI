@@ -139,8 +139,9 @@ public class DeviceDataServiceImpl implements DeviceDataServiceInterface {
 		Calendar cal = Calendar.getInstance();
 		cal.add(Calendar.MINUTE, -1);
 		Date minuteAgo = cal.getTime();
+		JSONObject minJson = null;
 		
-		try {
+		try {	
 			//Query to see if there is data for this minute already for this device
 			Aggregation aggrQuery = Aggregation.newAggregation(Aggregation.match(Criteria.where("name").is(name)),
 													Aggregation.unwind("$yearData"),
@@ -148,25 +149,30 @@ public class DeviceDataServiceImpl implements DeviceDataServiceInterface {
 													Aggregation.unwind("$yearData.monthData.dayData"),
 													Aggregation.unwind("$yearData.monthData.dayData.hourData"),
 													Aggregation.unwind("$yearData.monthData.dayData.hourData.minData"),
-													Aggregation.match(Criteria.where("yearData.monthData.dayData.hourData.minData.minTimestamp").gte(minuteAgo)),
-													(Aggregation.project().and("$yearData.monthData.dayData.hourData.minData").as("minData")));
+												//	Aggregation.match(Criteria.where("yearData.monthData.dayData.hourData.minData.minTimestamp").gte(minuteAgo)),
+													(Aggregation.project().and("$yearData.monthData.dayData.hourData.minData").as("minData")
+															.and("yearData.monthData.dayData.hourData.minData.minTimestamp").gte(minuteAgo)));
 
 			List<Document> minQueryList = mongoTemplate.aggregate(aggrQuery, "deviceData", Document.class).getMappedResults();
 			
 			if (minQueryList != null && minQueryList.size() > 0) {
 				JSONParser parser = new JSONParser();
-				JSONObject minJsonArr = (JSONObject)parser.parse(minQueryList.get(minQueryList.size()-1).toJson());			
-				JSONObject minJson = (JSONObject)minJsonArr.get("minData");
-
-				return minJson;
+				JSONObject minJsonArr = (JSONObject)parser.parse(minQueryList.get(0).toJson());			
+				minJson = (JSONObject)minJsonArr.get("minData");
 			}
+			else {
+				minJson = new JSONObject();
+				minJson.put("message", new String("No data available for the last minute for device: " + name));
+			}
+			
+			return minJson;
 		}
 		catch (Exception e) {
 			e.printStackTrace(System.out);
 			logger.debug(e.getMessage());
 		}
 		
-		return null;
+		return minJson;
 	}
 	
 	@Override
