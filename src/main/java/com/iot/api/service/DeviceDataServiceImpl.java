@@ -226,7 +226,7 @@ public class DeviceDataServiceImpl implements DeviceDataServiceInterface {
 	@Override
 	public JSONObject getDeviceDataForLastWeek(String name) {
 		// TODO Auto-generated method stub
-		return null;
+		return new JSONObject();
 	}
 
 	@Override
