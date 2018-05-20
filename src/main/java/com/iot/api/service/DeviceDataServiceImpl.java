@@ -225,8 +225,32 @@ public class DeviceDataServiceImpl implements DeviceDataServiceInterface {
 
 	@Override
 	public JSONObject getDeviceDataForLastWeek(String name) {
-		// TODO Auto-generated method stub
-		return new JSONObject();
+		//Timestamp for the current minute
+		Date currMinDate = DateUtil.getMinDate(new Date());
+
+		try {
+			//Query to see if there is data for this minute already for this device
+			Aggregation aggrQuery = Aggregation.newAggregation(Aggregation.match(Criteria.where("name").is(name)),
+					Aggregation.unwind("$yearData"),
+					Aggregation.unwind("$yearData.monthData"),
+					Aggregation.unwind("$yearData.monthData.dayData"),
+					//	Aggregation.match(Criteria.where("yearData.monthData.dayData.hourData.minData.minTimestamp").is(currMinDate)),
+					(Aggregation.project().and("$yearData.monthData.dayData").as("dayData")));
+
+			List<Document> dayQueryList = mongoTemplate.aggregate(aggrQuery, "deviceData", Document.class).getMappedResults();
+
+			if (dayQueryList != null && dayQueryList.size() > 0) {
+				JSONParser parser = new JSONParser();
+				JSONObject json = (JSONObject) parser.parse(dayQueryList.get(0).toJson());
+				return json;
+			}
+		}
+		catch (Exception e) {
+			e.printStackTrace(System.out);
+			logger.debug(e.getMessage());
+		}
+
+		return null;
 	}
 
 	@Override
