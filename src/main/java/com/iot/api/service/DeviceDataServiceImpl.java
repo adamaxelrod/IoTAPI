@@ -3,11 +3,11 @@ package com.iot.api.service;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.bson.Document;
 import org.bson.json.JsonWriterSettings;
+import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,6 +23,10 @@ import com.iot.api.util.DateUtil;
 
 import com.google.gson.*;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+
 @Service
 public class DeviceDataServiceImpl implements DeviceDataServiceInterface {
 
@@ -33,7 +37,7 @@ public class DeviceDataServiceImpl implements DeviceDataServiceInterface {
 	private MongoTemplate mongoTemplate;
 	
 	//Default Logging using log4j
-	public static final Log logger = LogFactory.getLog("iotapi");
+	public static final Logger logger = LoggerFactory.getLogger(DeviceDataServiceImpl.class);
 		
 	@Override
 	public List<DeviceData> getAllDevices() {
@@ -134,12 +138,12 @@ public class DeviceDataServiceImpl implements DeviceDataServiceInterface {
 	}
 
 	@Override
-	public JSONObject getDeviceDataForLastMinute(String name) {
+	public JSONArray getDeviceDataForLastMinute(String name) {
 		//Timestamp for the current minute
 		Calendar cal = Calendar.getInstance();
 		cal.add(Calendar.MINUTE, -1);
 		Date minuteAgo = cal.getTime();
-		JSONObject minJson = null;
+		JSONArray arr = new JSONArray();
 		
 		try {	
 			//Query to see if there is data for this minute already for this device
@@ -149,38 +153,26 @@ public class DeviceDataServiceImpl implements DeviceDataServiceInterface {
 													Aggregation.unwind("$yearData.monthData.dayData"),
 													Aggregation.unwind("$yearData.monthData.dayData.hourData"),
 													Aggregation.unwind("$yearData.monthData.dayData.hourData.minData"),
-												//	Aggregation.match(Criteria.where("yearData.monthData.dayData.hourData.minData.minTimestamp").gte(minuteAgo)),
 													(Aggregation.project().and("$yearData.monthData.dayData.hourData.minData").as("minData")
 															.and("yearData.monthData.dayData.hourData.minData.minTimestamp").gte(minuteAgo)));
 
 			List<Document> minQueryList = mongoTemplate.aggregate(aggrQuery, "deviceData", Document.class).getMappedResults();
-			
-			if (minQueryList != null && minQueryList.size() > 0) {
-				JSONParser parser = new JSONParser();
-				JSONObject minJsonArr = (JSONObject)parser.parse(minQueryList.get(0).toJson());			
-				minJson = (JSONObject)minJsonArr.get("minData");
-			}
-			else {
-				minJson = new JSONObject();
-				minJson.put("message", new String("No data available for the last minute for device: " + name));
-			}
-			
-			return minJson;
+			arr = this.convertDocListToArray(minQueryList, "minute", name);
 		}
 		catch (Exception e) {
-			e.printStackTrace(System.out);
-			logger.debug(e.getMessage());
+			logger.error(e.getMessage(), e);
 		}
 		
-		return minJson;
+		return arr;
 	}
 	
 	@Override
-	public JSONObject getDeviceDataForLastHour(String name) {
+	public JSONArray getDeviceDataForLastHour(String name) {
 		//Timestamp for date a minute ago	
 		Calendar cal = Calendar.getInstance();
 		cal.add(Calendar.HOUR, -1);
 		Date hourAgo = cal.getTime();
+		JSONArray arr = new JSONArray();
 		
 		try {
 			//Query to see if there is data for this minute already for this device
@@ -194,26 +186,23 @@ public class DeviceDataServiceImpl implements DeviceDataServiceInterface {
 
 			List<Document> hourQueryList = mongoTemplate.aggregate(aggrQuery, "deviceData", Document.class).getMappedResults();
 
-			if (hourQueryList != null && hourQueryList.size() > 0) {
-				JSONParser parser = new JSONParser();
-				JSONObject json = (JSONObject) parser.parse(hourQueryList.get(hourQueryList.size()-1).toJson());
-				return json;
-			}
+			arr = this.convertDocListToArray(hourQueryList, "hour", name);
 		}
-		catch (Exception e) {
-			e.printStackTrace(System.out);
-			logger.debug(e.getMessage());
+		catch (Exception e) {			
+			logger.error(e.getMessage(), e);
 		}
 
-		return null;
+		return arr;
 	}
 
 	@Override
-	public JSONObject getDeviceDataForLastDay(String name) {
+	public JSONArray getDeviceDataForLastDay(String name) {
 		//Timestamp for date a week ago		
 		Calendar cal = Calendar.getInstance();
 		cal.add(Calendar.DATE, -1);
 		Date dayAgo = cal.getTime(); 
+		
+		JSONArray arr = new JSONArray();
 		
 		try {
 			//Query to see if there is data for this minute already for this device
@@ -225,30 +214,26 @@ public class DeviceDataServiceImpl implements DeviceDataServiceInterface {
 					(Aggregation.project().and("$yearData.monthData.dayData").as("dayData")));
 
 			List<Document> dayQueryList = mongoTemplate.aggregate(aggrQuery, "deviceData", Document.class).getMappedResults();
-
-			if (dayQueryList != null && dayQueryList.size() > 0) {
-				JSONParser parser = new JSONParser();
-				JSONObject json = (JSONObject) parser.parse(dayQueryList.get(dayQueryList.size()-1).toJson());
-				return json;
-			}
+			arr = this.convertDocListToArray(dayQueryList, "day", name);			
 		}
 		catch (Exception e) {
-			e.printStackTrace(System.out);
-			logger.debug(e.getMessage());
+			logger.error(e.getMessage(), e);
 		}
 
-		return null;
+		return arr;
 	}
 
 	@Override
-	public JSONObject getDeviceDataForLastWeek(String name) {
+	public JSONArray getDeviceDataForLastWeek(String name) {
 		//Timestamp for date a week ago		
 		Calendar cal = Calendar.getInstance();
 		cal.add(Calendar.DATE, -7);
 		Date weekAgo = cal.getTime(); 
-
+		
+		JSONArray arr = new JSONArray();
+		
 		try {
-			//Query to see if there is data for this minute already for this device
+			//Query to see if there is data for the last week range
 			Aggregation aggrQuery = Aggregation.newAggregation(Aggregation.match(Criteria.where("name").is(name)),
 					Aggregation.unwind("$yearData"),
 					Aggregation.unwind("$yearData.monthData"),
@@ -257,27 +242,23 @@ public class DeviceDataServiceImpl implements DeviceDataServiceInterface {
 					(Aggregation.project().and("$yearData.monthData.dayData").as("dayData")));
 
 			List<Document> dayQueryList = mongoTemplate.aggregate(aggrQuery, "deviceData", Document.class).getMappedResults();
-
-			if (dayQueryList != null && dayQueryList.size() > 0) {
-				JSONParser parser = new JSONParser();
-				JSONObject json = (JSONObject) parser.parse(dayQueryList.get(dayQueryList.size()-1).toJson());
-				return json;
-			}
+			arr = this.convertDocListToArray(dayQueryList, "week", name);
 		}
 		catch (Exception e) {
-			e.printStackTrace(System.out);
-			logger.debug(e.getMessage());
+			logger.error(e.getMessage(), e);
 		}
 
-		return null;
+		return arr;
 	}
 
 	@Override
-	public JSONObject getDeviceDataForLastMonth(String name) {
+	public JSONArray getDeviceDataForLastMonth(String name) {
 		//Date corresponding to one year ago
 		Calendar cal = Calendar.getInstance();
 		cal.add(Calendar.MONTH, -1);
 		Date monthAgo = cal.getTime(); 
+		
+		JSONArray arr = new JSONArray();
 
 		try {
 			//Query to see if there is data for this minute already for this device
@@ -288,28 +269,24 @@ public class DeviceDataServiceImpl implements DeviceDataServiceInterface {
 					(Aggregation.project().and("$yearData.monthData").as("monthData")));
 
 			List<Document> monthQueryList = mongoTemplate.aggregate(aggrQuery, "deviceData", Document.class).getMappedResults();
-
-			if (monthQueryList != null && monthQueryList.size() > 0) {
-				JSONParser parser = new JSONParser();
-				JSONObject json = (JSONObject) parser.parse(monthQueryList.get(monthQueryList.size()-1).toJson());
-				return json;
-			}
+			arr = this.convertDocListToArray(monthQueryList, "month", name);				
 		}
 		catch (Exception e) {
-			e.printStackTrace(System.out);
-			logger.debug(e.getMessage());
+			logger.error(e.getMessage(), e);
 		}
 
-		return null;
+		return arr;
 	}
 
 	@Override
-	public JSONObject getDeviceDataForLastYear(String name) {
+	public JSONArray getDeviceDataForLastYear(String name) {
 		//Date corresponding to one year ago
 		Calendar cal = Calendar.getInstance();
 		cal.add(Calendar.YEAR, -1);
 		Date yearAgo = cal.getTime(); 
 
+		JSONArray arr = new JSONArray();
+		
 		try {
 			//Query to see if there is data for this minute already for this device
 			Aggregation aggrQuery = Aggregation.newAggregation(Aggregation.match(Criteria.where("name").is(name)),
@@ -318,21 +295,46 @@ public class DeviceDataServiceImpl implements DeviceDataServiceInterface {
 					Aggregation.project("yearData"));
 
 			List<Document> yearQueryList = mongoTemplate.aggregate(aggrQuery, "deviceData", Document.class).getMappedResults();
-
-			if (yearQueryList != null && yearQueryList.size() > 0) {
-				JSONParser parser = new JSONParser();
-				JSONObject json = (JSONObject) parser.parse(yearQueryList.get(yearQueryList.size()-1).toJson());
-				return json;
-			}
+			arr = this.convertDocListToArray(yearQueryList, "year", name);
 		}
 		catch (Exception e) {
-			e.printStackTrace(System.out);
-			logger.debug(e.getMessage());
+			e.printStackTrace();
 		}
 
-		return null;
+		return arr;
 	}
 
+	/**
+	 * convertDocListToArray
+	 * @Description: returns a JSONArray representation of a list of MongoDB documents fetched from an aggregation query
+	 * @param list
+	 * @param type
+	 * @param name
+	 * @return
+	 */
+	private JSONArray convertDocListToArray(List<Document> list, String type, String name) {
+		JSONArray arr = new JSONArray();
+		
+		try {
+			if (list != null && list.size() > 0) {
+				JSONParser parser = new JSONParser();
+				
+				for (Document doc : list) {				
+					JSONObject docObj = (JSONObject)parser.parse(doc.toJson());		
+					arr.add(docObj);					
+				}				
+			}
+			else {
+				arr.add(new JSONObject().put("message", new String("No data available for the last " + type + " for device: " + name)));
+			}
+		}
+		catch(Exception e) {
+			e.printStackTrace();
+		}
+		
+		return arr;
+	}
+	
 
 	/**
 	 * initializeInfo

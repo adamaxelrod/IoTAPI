@@ -1,11 +1,9 @@
 package com.iot.api.controllers;
 
-
-import java.util.concurrent.atomic.AtomicLong;
 import java.util.*;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -22,13 +20,13 @@ import org.springframework.http.ResponseEntity;
 
 import com.iot.api.resources.Device;
 import com.iot.api.resources.DeviceData;
-import com.iot.api.resources.MinuteData;
-import com.iot.api.resources.SecondData;
+
 import com.iot.api.resources.InputDeviceInfo;
 
 import com.iot.api.service.DeviceServiceInterface;
 import com.iot.api.service.DeviceDataServiceInterface;
 
+import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 
 
@@ -42,13 +40,9 @@ public class DeviceController {
 	@Autowired
 	private DeviceDataServiceInterface dataService;
 	
+	//Default Logging using log4j2
+	public static final Logger logger = LoggerFactory.getLogger(DeviceController.class);
 	
-	//Default Logging using log4j
-	public static final Log logger = LogFactory.getLog("iotapi");
-	
-	//Incremental counter for dynamic, unique id generation
-    private final AtomicLong counter = new AtomicLong();
-    
 
     /**
      * Description: retrieves device information based on specific device name
@@ -64,6 +58,7 @@ public class DeviceController {
     	}
     	catch(Exception e) {
     		//Default handling to ensure no incorrect data is returned
+    		logger.error(e.getMessage(), e);
     		dev = null;
     	}
 
@@ -91,6 +86,7 @@ public class DeviceController {
     	}
     	catch(Exception e) {
     		//Default handling to ensure no incorrect data is returned
+    		logger.error(e.getMessage(), e);
     		devList = null;
     	}	
     	
@@ -116,6 +112,7 @@ public class DeviceController {
     	}
     	catch(Exception e) {
     		//Default handling to ensure no incorrect data is returned
+    		logger.error(e.getMessage(), e);
     		return new ResponseEntity<JSONObject>(getDefaultErrorMessage(), HttpStatus.BAD_REQUEST);
     	}	
     	    	
@@ -137,6 +134,7 @@ public class DeviceController {
     	}
     	catch(Exception e) {
     		//Default handling to ensure no incorrect data is returned
+    		logger.error(e.getMessage(), e);
     		return new ResponseEntity<JSONObject>(getDefaultErrorMessage(), HttpStatus.BAD_REQUEST);
     	}	
     	    	
@@ -159,6 +157,7 @@ public class DeviceController {
     	}
     	catch(Exception e) {
     		//Default handling to ensure no incorrect data is returned
+    		logger.error(e.getMessage(), e);
     		devList = null;
     	}	
     	
@@ -185,6 +184,7 @@ public class DeviceController {
     	}
     	catch(Exception e) {
     		//Default handling to ensure no incorrect data is returned
+    		logger.error(e.getMessage(), e);
     		return new ResponseEntity<JSONObject>(this.getDefaultErrorMessage(), HttpStatus.BAD_REQUEST);
     	}	
     	
@@ -203,7 +203,9 @@ public class DeviceController {
      */
     @RequestMapping(method=RequestMethod.GET, value="/data/{name}/minute", produces=MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<?> getLastMinuteData(@PathVariable(value="name") String name) {
-    	JSONObject minData = null;
+    	logger.debug("Requesting minute data for: " + name);
+    	
+    	JSONArray minData = null;
 
     	try {
     		if (dataService != null) {
@@ -212,6 +214,7 @@ public class DeviceController {
     	}
     	catch(Exception e) {
     		//Default handling to ensure no incorrect data is returned
+    		logger.error(e.getMessage(), e);
     		return new ResponseEntity<JSONObject>(this.getDefaultErrorMessage(), HttpStatus.BAD_REQUEST);
     	}	
     	
@@ -220,7 +223,7 @@ public class DeviceController {
     		return new ResponseEntity<JSONObject>(this.getDefaultJSONObject(), HttpStatus.OK);
     	}    	
     	
-    	return new ResponseEntity<JSONObject>(minData, HttpStatus.OK);
+    	return new ResponseEntity<JSONArray>(minData, HttpStatus.OK);
     }
     
     
@@ -230,7 +233,7 @@ public class DeviceController {
      */
     @RequestMapping(method=RequestMethod.GET, value="/data/{name}/hour", produces=MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<?> getLastHourData(@PathVariable(value="name") String name) {
-    	JSONObject hourData = null;
+    	JSONArray hourData = null;
 
     	try {
     		if (dataService != null) {
@@ -239,6 +242,7 @@ public class DeviceController {
     	}
     	catch(Exception e) {
     		//Default handling to ensure no incorrect data is returned
+    		logger.error(e.getMessage(), e);
     		return new ResponseEntity<JSONObject>(this.getDefaultErrorMessage(), HttpStatus.BAD_REQUEST);
     	}	
     	
@@ -247,7 +251,7 @@ public class DeviceController {
     		return new ResponseEntity<JSONObject>(this.getDefaultJSONObject(), HttpStatus.OK);
     	}    	
     	
-    	return new ResponseEntity<JSONObject>(hourData, HttpStatus.OK);
+    	return new ResponseEntity<JSONArray>(hourData, HttpStatus.OK);
     }
     
     
@@ -257,7 +261,7 @@ public class DeviceController {
      */
     @RequestMapping(method=RequestMethod.GET, value="/data/{name}/day", produces=MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<?> getLastDayData(@PathVariable(value="name") String name) {
-    	JSONObject dayData = null;
+    	JSONArray dayData = null;
 
     	try {
     		if (dataService != null) {
@@ -266,6 +270,7 @@ public class DeviceController {
     	}
     	catch(Exception e) {
     		//Default handling to ensure no incorrect data is returned
+    		logger.error(e.getMessage(), e);
     		return new ResponseEntity<JSONObject>(this.getDefaultErrorMessage(), HttpStatus.BAD_REQUEST);
     	}	
     	
@@ -274,7 +279,7 @@ public class DeviceController {
     		return new ResponseEntity<JSONObject>(this.getDefaultJSONObject(), HttpStatus.OK);
     	}    	
     	
-    	return new ResponseEntity<JSONObject>(dayData, HttpStatus.OK);
+    	return new ResponseEntity<JSONArray>(dayData, HttpStatus.OK);
     }
     
     
@@ -284,7 +289,7 @@ public class DeviceController {
      */
     @RequestMapping(method=RequestMethod.GET, value="/data/{name}/week", produces=MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<?> getLastWeekData(@PathVariable(value="name") String name) {
-    	JSONObject weekData = null;
+    	JSONArray weekData = null;
 
     	try {
     		if (dataService != null) {
@@ -293,6 +298,7 @@ public class DeviceController {
     	}
     	catch(Exception e) {
     		//Default handling to ensure no incorrect data is returned
+    		logger.error(e.getMessage(), e);
     		return new ResponseEntity<JSONObject>(this.getDefaultErrorMessage(), HttpStatus.BAD_REQUEST);
     	}	
     	
@@ -301,7 +307,7 @@ public class DeviceController {
     		return new ResponseEntity<JSONObject>(this.getDefaultJSONObject(), HttpStatus.OK);
     	}    	
     	
-    	return new ResponseEntity<JSONObject>(weekData, HttpStatus.OK);
+    	return new ResponseEntity<JSONArray>(weekData, HttpStatus.OK);
     }
     
     /**
@@ -310,7 +316,7 @@ public class DeviceController {
      */
     @RequestMapping(method=RequestMethod.GET, value="/data/{name}/month", produces=MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<?> getLastMonthData(@PathVariable(value="name") String name) {
-    	JSONObject monthData = null;
+    	JSONArray monthData = null;
 
     	try {
     		if (dataService != null) {
@@ -319,6 +325,7 @@ public class DeviceController {
     	}
     	catch(Exception e) {
     		//Default handling to ensure no incorrect data is returned
+    		logger.error(e.getMessage(), e);
     		return new ResponseEntity<JSONObject>(this.getDefaultErrorMessage(), HttpStatus.BAD_REQUEST);
     	}	
     	
@@ -327,7 +334,7 @@ public class DeviceController {
     		return new ResponseEntity<JSONObject>(this.getDefaultJSONObject(), HttpStatus.OK);
     	}    	
     	
-    	return new ResponseEntity<JSONObject>(monthData, HttpStatus.OK);
+    	return new ResponseEntity<JSONArray>(monthData, HttpStatus.OK);
     }
     
     /**
@@ -336,7 +343,7 @@ public class DeviceController {
      */
     @RequestMapping(method=RequestMethod.GET, value="/data/{name}/year", produces=MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<?> getLastYearData(@PathVariable(value="name") String name) {
-    	JSONObject yearData = null;
+    	JSONArray yearData = null;
 
     	try {
     		if (dataService != null) {
@@ -344,7 +351,7 @@ public class DeviceController {
     		}
     	}
     	catch(Exception e) {
-    		//Default handling to ensure no incorrect data is returned
+    		logger.error(e.getMessage(), e);
     		return new ResponseEntity<JSONObject>(this.getDefaultErrorMessage(), HttpStatus.BAD_REQUEST);
     	}	
     	
@@ -353,7 +360,7 @@ public class DeviceController {
     		return new ResponseEntity<JSONObject>(this.getDefaultJSONObject(), HttpStatus.OK);
     	}    	
     	
-    	return new ResponseEntity<JSONObject>(yearData, HttpStatus.OK);
+    	return new ResponseEntity<JSONArray>(yearData, HttpStatus.OK);
     }
     
     
@@ -365,6 +372,7 @@ public class DeviceController {
     @RequestMapping(method=RequestMethod.POST,  value="/data", produces=MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<?> addDeviceData(@RequestBody InputDeviceInfo newData) {
     	DeviceData data = null;
+    	
     	try {    		    		
     		data = dataService.getDevice(newData.getName());
     		
@@ -373,7 +381,7 @@ public class DeviceController {
     		}
     	}
     	catch(Exception e) {
-    		e.printStackTrace(System.out);
+    		logger.error(e.getMessage(), e);
     		//Default handling to ensure no incorrect data is returned
     		return new ResponseEntity<JSONObject>(getDefaultErrorMessage(), HttpStatus.BAD_REQUEST);
     	}	
@@ -395,7 +403,7 @@ public class DeviceController {
     		}
     	}
     	catch(Exception e) {
-    		//Default handling to ensure no incorrect data is returned
+    		logger.error(e.getMessage(), e);
     		return new ResponseEntity<JSONObject>(getDefaultErrorMessage(), HttpStatus.BAD_REQUEST);
     	}	
     	    	

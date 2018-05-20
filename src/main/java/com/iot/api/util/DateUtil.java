@@ -4,8 +4,13 @@ import java.text.SimpleDateFormat;
 import java.time.*;
 import java.util.*;
 
-public class DateUtil {
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+public class DateUtil {
+	//Default Logging using log4j2
+	public static final Logger logger = LoggerFactory.getLogger(DateUtil.class);
+		
 	public static Date getCurrDate() { 
 		return  Date.from(Instant.now());		
 	}
@@ -99,7 +104,7 @@ public class DateUtil {
 			return simpleDateFormat.format(inputDate);
 		}
 		catch(Exception e) {
-			e.printStackTrace(System.out);
+			logger.error(e.getMessage(), e);
 			return inputDate.toString();
 		}
 	}
@@ -114,11 +119,11 @@ public class DateUtil {
 			SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
 			simpleDateFormat.setTimeZone(timeZone);
 			
-			System.out.println("Returning Date: " + simpleDateFormat.format(inputDate));
+			logger.debug("Returning Date: " + simpleDateFormat.format(inputDate));
 			return simpleDateFormat.parse(simpleDateFormat.format(inputDate));
 		}
 		catch(Exception e) {
-			e.printStackTrace(System.out);
+			logger.error(e.getMessage(), e);
 			return inputDate;
 		}
 	}
