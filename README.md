@@ -1,3 +1,14 @@
+## Description
+This is a small project to provide a RESTful API for gathering data for IoT devices. With this API, you can:
+- Create, read, delete configuration data for IoT devices
+- Store temperature data (collected every second)
+- Retrieve the last minute, last hour, last day, last week, last month, and last year worth of data.
+
+Design approach: 
+In order to support an API that could scale both in throughput and data, MongoDB was chosen as the data store since its document-store structure provide a natural fit for time-series data. In particular, all of the data for a particular device can be retrieved in a single document fetch and sub-document arrays (JSON sub arrays) can be used to differentiate the different time periods so that retrieving particular groups of data (i.e day/month/year) can be done quite efficiently. Retrieval of data for each interval is done using MongoDB's aggregation pipeline framework. Additionally, the temperature data is stored in a separate collection from the device configuration data to highlight independence of data and allowing the time-series data to grow and not affect configuration data retrievals.
+
+The middleware is Java using Spring Boot, Jackson, and other associated libraries.
+
 ## Requirements
 
 For building and running the application you need:
