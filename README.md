@@ -4,13 +4,29 @@ For building and running the application you need:
 
 - [Java 8](http://www.oracle.com/technetwork/java/javase/downloads/jdk8-downloads-2133151.html)
 - [Gradle 4.5.1](https://gradle.org)
+- [MongoDB 3.6](https://www.mongodb.com)
 
 ## Running the application locally
 
 Run the application locally using the Gradle wrapper (gradlew)
 
+First, detect which environment you want to use (dev, openshift, prod, windowsdev). Each of these specific configurations are defined under src/main/environment/<env name>
+
+- dev : meant for running on your local Linux/Mac (connects to MongoDB that assumed to be running and bound to localhost)
+- windowsdev : meant for running on a local Windows PC
+- openshift : meant for running in an OpenShift deployment (Note: currently under test and not yet fully deployed)
+- prod : for future production configuration
+
+The default environment is: dev
+
+Linux or MacOS:
 ```shell
-./gradlew bootRun   (this will internally call the compile/build tasks)
+./gradlew -Penv=<env name> bootRun   (this will internally call the compile/build tasks)
+```
+
+Windows:
+```shell
+gradlew.bat -Penv=<env name> bootRun   (this will internally call the compile/build tasks)
 ```
 
 Once the build completes, run the unit tests for the application and then use Postman to run API tests
@@ -19,7 +35,7 @@ Once the build completes, run the unit tests for the application and then use Po
 ### Unit Tests
 See the testing folder to find the list of Postman functional and load tests that can be run as:
 ```shell
-./gradlew test
+./gradlew -Penv=<env name> test
 ````
 
 The tests output are located at:
