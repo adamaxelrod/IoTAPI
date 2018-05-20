@@ -155,7 +155,7 @@ public class DeviceDataServiceImpl implements DeviceDataServiceInterface {
 			
 			if (minQueryList != null && minQueryList.size() > 0) {
 				JSONParser parser = new JSONParser();
-				JSONObject minJsonArr = (JSONObject)parser.parse(minQueryList.get(0).toJson());			
+				JSONObject minJsonArr = (JSONObject)parser.parse(minQueryList.get(minQueryList.size()-1).toJson());			
 				JSONObject minJson = (JSONObject)minJsonArr.get("minData");
 
 				return minJson;
@@ -190,7 +190,7 @@ public class DeviceDataServiceImpl implements DeviceDataServiceInterface {
 
 			if (hourQueryList != null && hourQueryList.size() > 0) {
 				JSONParser parser = new JSONParser();
-				JSONObject json = (JSONObject) parser.parse(hourQueryList.get(0).toJson());
+				JSONObject json = (JSONObject) parser.parse(hourQueryList.get(hourQueryList.size()-1).toJson());
 				return json;
 			}
 		}
@@ -222,7 +222,7 @@ public class DeviceDataServiceImpl implements DeviceDataServiceInterface {
 
 			if (dayQueryList != null && dayQueryList.size() > 0) {
 				JSONParser parser = new JSONParser();
-				JSONObject json = (JSONObject) parser.parse(dayQueryList.get(0).toJson());
+				JSONObject json = (JSONObject) parser.parse(dayQueryList.get(dayQueryList.size()-1).toJson());
 				return json;
 			}
 		}
@@ -254,7 +254,7 @@ public class DeviceDataServiceImpl implements DeviceDataServiceInterface {
 
 			if (dayQueryList != null && dayQueryList.size() > 0) {
 				JSONParser parser = new JSONParser();
-				JSONObject json = (JSONObject) parser.parse(dayQueryList.get(0).toJson());
+				JSONObject json = (JSONObject) parser.parse(dayQueryList.get(dayQueryList.size()-1).toJson());
 				return json;
 			}
 		}
@@ -285,7 +285,7 @@ public class DeviceDataServiceImpl implements DeviceDataServiceInterface {
 
 			if (monthQueryList != null && monthQueryList.size() > 0) {
 				JSONParser parser = new JSONParser();
-				JSONObject json = (JSONObject) parser.parse(monthQueryList.get(0).toJson());
+				JSONObject json = (JSONObject) parser.parse(monthQueryList.get(monthQueryList.size()-1).toJson());
 				return json;
 			}
 		}
@@ -315,7 +315,7 @@ public class DeviceDataServiceImpl implements DeviceDataServiceInterface {
 
 			if (yearQueryList != null && yearQueryList.size() > 0) {
 				JSONParser parser = new JSONParser();
-				JSONObject json = (JSONObject) parser.parse(yearQueryList.get(0).toJson());
+				JSONObject json = (JSONObject) parser.parse(yearQueryList.get(yearQueryList.size()-1).toJson());
 				return json;
 			}
 		}
