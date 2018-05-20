@@ -2,7 +2,7 @@
 
 For building and running the application you need:
 
-- [JDK 1.8]
+- [Java 8](http://www.oracle.com/technetwork/java/javase/downloads/jdk8-downloads-2133151.html)
 - [Gradle 4.5.1](https://gradle.org)
 
 ## Running the application locally
@@ -10,10 +10,43 @@ For building and running the application you need:
 Run the application locally using the Gradle wrapper (gradlew)
 
 ```shell
-./gradlew bootRun
+./gradlew bootRun   (this will internally call the compile/build tasks)
 ```
 
-## Deploying the application to OpenShift
+Once the build completes, run the unit tests for the application and then use Postman to run API tests
+
+## Testing the Application 
+### Unit Tests
+See the testing folder to find the list of Postman functional and load tests that can be run as:
+```shell
+./gradlew test
+````
+
+The tests output are located at:
+```shell
+build/reports/test
+````
+### Functional Tests
+Use Postman (found at: https://www.getpostman.com) to run the pre-defined tests under:
+
+```shell
+test-scripts/
+```
+
+## API Documentation
+Once the test are run, the documentation can be generated as:
+
+```shell
+./gradlew asciidoc
+```
+
+The documentation will be created under:
+
+```shell
+build/asciidoc/html5
+```
+
+## Deploying the application to OpenShift (not fully supported yet)
 
 The easiest way to deploy the sample application to OpenShift is to use the [OpenShift CLI](https://docs.openshift.org/latest/cli_reference/index.html):
 
@@ -21,16 +54,3 @@ The easiest way to deploy the sample application to OpenShift is to use the [Ope
 oc new-app <TBD>
 ```
 
-This will create:
-
-* An ImageStream called "springboot-maven3-centos"
-* An ImageStream called "springboot-sample-app"
-* A BuildConfig called "springboot-sample-app"
-* DeploymentConfig called "springboot-sample-app"
-* Service called "springboot-sample-app"
-
-If you want to access the app from outside your OpenShift installation, you have to expose the springboot-sample-app service:
-
-```shell
-oc expose springboot-sample-app --hostname=www.example.com
-```
