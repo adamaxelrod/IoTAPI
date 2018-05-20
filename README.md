@@ -40,7 +40,13 @@ Windows:
 gradlew.bat -Penv=<env name> bootRun   (this will internally call the compile/build tasks)
 ```
 
-Once the build completes, run the unit tests for the application and then use Postman to run API tests
+Once the build completes, run the unit tests for the application and then use Postman to run API tests.
+
+## Accessing the Application 
+Once running, the application can be accessed over the default TCP port 8080 at:
+
+http://localhost:8080
+
 
 ## Testing the Application 
 ### Unit Tests
