@@ -31,5 +31,6 @@
 			<attribute name="gradle_used_by_scope" value="test"/>
 		</attributes>
 	</classpathentry>
+	<classpathentry kind="lib" path="/Users/adamaxelrod/Downloads/gson-2.8.2.jar"/>
 	<classpathentry kind="output" path="bin/default"/>
 </classpath>

@@ -1,0 +1,150 @@
+{
+	"variables": [],
+	"info": {
+		"name": "IoTAPI",
+		"_postman_id": "ca5351fe-2c37-bcaa-9776-1c9b6f0e3563",
+		"description": "",
+		"schema": "https://schema.getpostman.com/json/collection/v2.0.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Add-Device-Data",
+			"request": {
+				"url": "localhost:8080/device/data",
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"description": ""
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n\t\"name\": \"Device001\",\n\t\"temperature\": 35.1\n}"
+				},
+				"description": "This will add a new data point (temperature reading)"
+			},
+			"response": []
+		},
+		{
+			"name": "Last-Minute-Data",
+			"request": {
+				"url": "localhost:8080/device/data/Device001/minute",
+				"method": "GET",
+				"header": [],
+				"body": {},
+				"description": ""
+			},
+			"response": []
+		},
+		{
+			"name": "Last-Hour-Data",
+			"request": {
+				"url": "localhost:8080/device/data/Device001/hour",
+				"method": "GET",
+				"header": [],
+				"body": {},
+				"description": ""
+			},
+			"response": []
+		},
+		{
+			"name": "Last-Day-Data",
+			"request": {
+				"url": "localhost:8080/device/data/Device001/day",
+				"method": "GET",
+				"header": [],
+				"body": {},
+				"description": ""
+			},
+			"response": []
+		},
+		{
+			"name": "Last-Week-Data",
+			"request": {
+				"url": "localhost:8080/device/data/Device001/week",
+				"method": "GET",
+				"header": [],
+				"body": {},
+				"description": ""
+			},
+			"response": []
+		},
+		{
+			"name": "Last-Year-Data",
+			"request": {
+				"url": "localhost:8080/device/data/Device001/year",
+				"method": "GET",
+				"header": [],
+				"body": {},
+				"description": ""
+			},
+			"response": []
+		},
+		{
+			"name": "All-Device-Data",
+			"request": {
+				"url": "localhost:8080/device/data",
+				"method": "GET",
+				"header": [],
+				"body": {},
+				"description": ""
+			},
+			"response": []
+		},
+		{
+			"name": "Create-Device-Config",
+			"request": {
+				"url": "localhost:8080/device",
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"description": ""
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n\t\"id\": 1,\n\t\"name\": \"Device001\"\n}"
+				},
+				"description": ""
+			},
+			"response": []
+		},
+		{
+			"name": "Delete-Device-Config",
+			"request": {
+				"url": "localhost:8080/device/Device001",
+				"method": "DELETE",
+				"header": [],
+				"body": {},
+				"description": ""
+			},
+			"response": []
+		},
+		{
+			"name": "All-Device-Config",
+			"request": {
+				"url": "localhost:8080/device/",
+				"method": "GET",
+				"header": [],
+				"body": {},
+				"description": ""
+			},
+			"response": []
+		},
+		{
+			"name": "Delete-Device-Data",
+			"request": {
+				"url": "localhost:8080/device/data/Device001",
+				"method": "DELETE",
+				"header": [],
+				"body": {},
+				"description": ""
+			},
+			"response": []
+		}
+	]
+}

@@ -1,11 +1,13 @@
 package com.iot.api.service;
 
+import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.bson.Document;
+import org.bson.json.JsonWriterSettings;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,6 +21,7 @@ import com.iot.api.repository.DeviceDataRepository;
 import com.iot.api.resources.*;
 import com.iot.api.util.DateUtil;
 
+import com.google.gson.*;
 
 @Service
 public class DeviceDataServiceImpl implements DeviceDataServiceInterface {
@@ -133,7 +136,9 @@ public class DeviceDataServiceImpl implements DeviceDataServiceInterface {
 	@Override
 	public JSONObject getDeviceDataForLastMinute(String name) {
 		//Timestamp for the current minute
-		Date currMinDate = DateUtil.getMinDate(new Date());
+		Calendar cal = Calendar.getInstance();
+		cal.add(Calendar.MINUTE, -1);
+		Date minuteAgo = cal.getTime();
 		
 		try {
 			//Query to see if there is data for this minute already for this device
@@ -143,14 +148,16 @@ public class DeviceDataServiceImpl implements DeviceDataServiceInterface {
 													Aggregation.unwind("$yearData.monthData.dayData"),
 													Aggregation.unwind("$yearData.monthData.dayData.hourData"),
 													Aggregation.unwind("$yearData.monthData.dayData.hourData.minData"),
-												//	Aggregation.match(Criteria.where("yearData.monthData.dayData.hourData.minData.minTimestamp").is(currMinDate)),
+													Aggregation.match(Criteria.where("yearData.monthData.dayData.hourData.minData.minTimestamp").gte(minuteAgo)),
 													(Aggregation.project().and("$yearData.monthData.dayData.hourData.minData").as("minData")));
 
 			List<Document> minQueryList = mongoTemplate.aggregate(aggrQuery, "deviceData", Document.class).getMappedResults();
 			
 			if (minQueryList != null && minQueryList.size() > 0) {
 				JSONParser parser = new JSONParser();
-				JSONObject minJson = (JSONObject) parser.parse(minQueryList.get(0).toJson());
+				JSONObject minJsonArr = (JSONObject)parser.parse(minQueryList.get(0).toJson());			
+				JSONObject minJson = (JSONObject)minJsonArr.get("minData");
+
 				return minJson;
 			}
 		}
@@ -164,9 +171,11 @@ public class DeviceDataServiceImpl implements DeviceDataServiceInterface {
 	
 	@Override
 	public JSONObject getDeviceDataForLastHour(String name) {
-		//Timestamp for the current minute
-		Date currMinDate = DateUtil.getMinDate(new Date());
-
+		//Timestamp for date a minute ago	
+		Calendar cal = Calendar.getInstance();
+		cal.add(Calendar.HOUR, -1);
+		Date hourAgo = cal.getTime();
+		
 		try {
 			//Query to see if there is data for this minute already for this device
 			Aggregation aggrQuery = Aggregation.newAggregation(Aggregation.match(Criteria.where("name").is(name)),
@@ -174,7 +183,7 @@ public class DeviceDataServiceImpl implements DeviceDataServiceInterface {
 					Aggregation.unwind("$yearData.monthData"),
 					Aggregation.unwind("$yearData.monthData.dayData"),
 					Aggregation.unwind("$yearData.monthData.dayData.hourData"),
-					//	Aggregation.match(Criteria.where("yearData.monthData.dayData.hourData.minData.minTimestamp").is(currMinDate)),
+					Aggregation.match(Criteria.where("yearData.monthData.dayData.hourData.hourTimestamp").gte(hourAgo)),
 					(Aggregation.project().and("$yearData.monthData.dayData.hourData").as("hourData")));
 
 			List<Document> hourQueryList = mongoTemplate.aggregate(aggrQuery, "deviceData", Document.class).getMappedResults();
@@ -195,16 +204,18 @@ public class DeviceDataServiceImpl implements DeviceDataServiceInterface {
 
 	@Override
 	public JSONObject getDeviceDataForLastDay(String name) {
-		//Timestamp for the current minute
-		Date currMinDate = DateUtil.getMinDate(new Date());
-
+		//Timestamp for date a week ago		
+		Calendar cal = Calendar.getInstance();
+		cal.add(Calendar.DATE, -1);
+		Date dayAgo = cal.getTime(); 
+		
 		try {
 			//Query to see if there is data for this minute already for this device
 			Aggregation aggrQuery = Aggregation.newAggregation(Aggregation.match(Criteria.where("name").is(name)),
 					Aggregation.unwind("$yearData"),
 					Aggregation.unwind("$yearData.monthData"),
 					Aggregation.unwind("$yearData.monthData.dayData"),
-					//	Aggregation.match(Criteria.where("yearData.monthData.dayData.hourData.minData.minTimestamp").is(currMinDate)),
+					Aggregation.match(Criteria.where("yearData.monthData.dayData.dayTimestamp").gte(dayAgo)),
 					(Aggregation.project().and("$yearData.monthData.dayData").as("dayData")));
 
 			List<Document> dayQueryList = mongoTemplate.aggregate(aggrQuery, "deviceData", Document.class).getMappedResults();
@@ -225,8 +236,10 @@ public class DeviceDataServiceImpl implements DeviceDataServiceInterface {
 
 	@Override
 	public JSONObject getDeviceDataForLastWeek(String name) {
-		//Timestamp for the current minute
-		Date currMinDate = DateUtil.getMinDate(new Date());
+		//Timestamp for date a week ago		
+		Calendar cal = Calendar.getInstance();
+		cal.add(Calendar.DATE, -7);
+		Date weekAgo = cal.getTime(); 
 
 		try {
 			//Query to see if there is data for this minute already for this device
@@ -234,7 +247,7 @@ public class DeviceDataServiceImpl implements DeviceDataServiceInterface {
 					Aggregation.unwind("$yearData"),
 					Aggregation.unwind("$yearData.monthData"),
 					Aggregation.unwind("$yearData.monthData.dayData"),
-					//	Aggregation.match(Criteria.where("yearData.monthData.dayData.hourData.minData.minTimestamp").is(currMinDate)),
+					Aggregation.match(Criteria.where("yearData.monthData.dayData.dayTimestamp").gte(weekAgo)),
 					(Aggregation.project().and("$yearData.monthData.dayData").as("dayData")));
 
 			List<Document> dayQueryList = mongoTemplate.aggregate(aggrQuery, "deviceData", Document.class).getMappedResults();
@@ -255,15 +268,17 @@ public class DeviceDataServiceImpl implements DeviceDataServiceInterface {
 
 	@Override
 	public JSONObject getDeviceDataForLastMonth(String name) {
-		//Timestamp for the current minute
-		Date currMinDate = DateUtil.getMinDate(new Date());
+		//Date corresponding to one year ago
+		Calendar cal = Calendar.getInstance();
+		cal.add(Calendar.MONTH, -1);
+		Date monthAgo = cal.getTime(); 
 
 		try {
 			//Query to see if there is data for this minute already for this device
 			Aggregation aggrQuery = Aggregation.newAggregation(Aggregation.match(Criteria.where("name").is(name)),
 					Aggregation.unwind("$yearData"),
 					Aggregation.unwind("$yearData.monthData"),
-					//	Aggregation.match(Criteria.where("yearData.monthData.dayData.hourData.minData.minTimestamp").is(currMinDate)),
+					Aggregation.match(Criteria.where("yearData.monthData.monthTimestamp").gte(monthAgo)),
 					(Aggregation.project().and("$yearData.monthData").as("monthData")));
 
 			List<Document> monthQueryList = mongoTemplate.aggregate(aggrQuery, "deviceData", Document.class).getMappedResults();
@@ -284,14 +299,16 @@ public class DeviceDataServiceImpl implements DeviceDataServiceInterface {
 
 	@Override
 	public JSONObject getDeviceDataForLastYear(String name) {
-		//Timestamp for the current minute
-		Date currMinDate = DateUtil.getMinDate(new Date());
+		//Date corresponding to one year ago
+		Calendar cal = Calendar.getInstance();
+		cal.add(Calendar.YEAR, -1);
+		Date yearAgo = cal.getTime(); 
 
 		try {
 			//Query to see if there is data for this minute already for this device
 			Aggregation aggrQuery = Aggregation.newAggregation(Aggregation.match(Criteria.where("name").is(name)),
 					Aggregation.unwind("$yearData"),
-					//	Aggregation.match(Criteria.where("yearData.monthData.dayData.hourData.minData.minTimestamp").is(currMinDate)),
+					Aggregation.match(Criteria.where("yearData.yearTimestamp").gte(yearAgo)),
 					Aggregation.project("yearData"));
 
 			List<Document> yearQueryList = mongoTemplate.aggregate(aggrQuery, "deviceData", Document.class).getMappedResults();
@@ -323,7 +340,7 @@ public class DeviceDataServiceImpl implements DeviceDataServiceInterface {
 		dev.setName(info.getName());
 		
 		YearData yd = new YearData();
-		yd.setYearTimestamp(currDate);
+		yd.setYearTimestamp(DateUtil.getYearDate(currDate));
 
 		MonthData mod = new MonthData();
 		mod.setMonthTimestamp(DateUtil.getMonthDate(currDate));

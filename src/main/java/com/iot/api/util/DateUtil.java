@@ -10,40 +10,35 @@ public class DateUtil {
 		return  Date.from(Instant.now());		
 	}
 	
-	public static Date getCurrDateUTC() { 
-		return  Date.from(Instant.now());		
-	}
-	
 	/**
 	 * Custom date class to get different timestamps and ensure common timezone
 	 * @param date
 	 * @return
 	 */
-	public static Date getYearData(Date date) {
+	public static Date getYearDate(Date date) {
 		Calendar calendar = Calendar.getInstance();
-//		calendar.setTimeZone(TimeZone.getTimeZone("UTC"));
 		calendar.setTime(date);
 		calendar.set(Calendar.MILLISECOND, 0);
 		calendar.set(Calendar.SECOND, 0);
 		calendar.set(Calendar.MINUTE, 0);
 		calendar.set(Calendar.HOUR, 0);
+		calendar.set(Calendar.DAY_OF_YEAR, 1);
 		return localParse(calendar.getTime());		    	
 	}
 	
 	public static Date getMonthDate(Date date) {
 		Calendar calendar = Calendar.getInstance();
-	//	calendar.setTimeZone(TimeZone.getTimeZone("UTC"));
 		calendar.setTime(date);
 		calendar.set(Calendar.MILLISECOND, 0);
 		calendar.set(Calendar.SECOND, 0);
 		calendar.set(Calendar.MINUTE, 0);
 		calendar.set(Calendar.HOUR, 0);
+		calendar.set(Calendar.DAY_OF_MONTH, 1);
 		return localParse(calendar.getTime());	    	
 	}
 	
 	public static Date getDayDate(Date date) {
 		Calendar calendar = Calendar.getInstance();
-//		calendar.setTimeZone(TimeZone.getTimeZone("UTC"));
 		calendar.setTime(date);
 		calendar.set(Calendar.MILLISECOND, 0);
 		calendar.set(Calendar.SECOND, 0);
@@ -54,7 +49,6 @@ public class DateUtil {
 	
 	public static Date getHourDate(Date date) {
 		Calendar calendar = Calendar.getInstance();
-//		calendar.setTimeZone(TimeZone.getTimeZone("UTC"));
 		calendar.setTime(date);
 		calendar.set(Calendar.MILLISECOND, 0);
 		calendar.set(Calendar.SECOND, 0);
@@ -65,7 +59,6 @@ public class DateUtil {
 	
 	public static Date getMinDate(Date date) {
 		Calendar calendar = Calendar.getInstance();
-//		calendar.setTimeZone(TimeZone.getTimeZone("UTC"));
 		calendar.setTime(date);
 		calendar.set(Calendar.MILLISECOND, 0);
 		calendar.set(Calendar.SECOND, 0);
@@ -76,7 +69,6 @@ public class DateUtil {
 	
 	public static Date getSecDate(Date date) {
 		Calendar calendar = Calendar.getInstance();
-//		calendar.setTimeZone(TimeZone.getTimeZone("UTC"));
 		calendar.setTime(date);
 		calendar.set(Calendar.MILLISECOND, 0);
 		calendar.set(Calendar.SECOND, date.getSeconds());
@@ -87,7 +79,6 @@ public class DateUtil {
 
 	public static Date getFullDate(Date date) {
 		Calendar calendar = Calendar.getInstance();
-//		calendar.setTimeZone(TimeZone.getTimeZone("UTC"));
 		calendar.setTime(date);
 		calendar.set(Calendar.SECOND, date.getSeconds());
 		calendar.set(Calendar.MINUTE, date.getMinutes());
@@ -104,9 +95,7 @@ public class DateUtil {
 	
 			SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
 			simpleDateFormat.setTimeZone(timeZone);
-						
-			System.out.println("FORMATTED: " + simpleDateFormat.format(inputDate));
-
+			
 			return simpleDateFormat.format(inputDate);
 		}
 		catch(Exception e) {
@@ -125,9 +114,7 @@ public class DateUtil {
 			SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
 			simpleDateFormat.setTimeZone(timeZone);
 			
-			System.out.println("ACTUAL: " + inputDate.toString());
-			System.out.println("FORMATTED: " + simpleDateFormat.format(inputDate));
-
+			System.out.println("Returning Date: " + simpleDateFormat.format(inputDate));
 			return simpleDateFormat.parse(simpleDateFormat.format(inputDate));
 		}
 		catch(Exception e) {

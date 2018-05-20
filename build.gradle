@@ -51,10 +51,10 @@ bootJar {
     version =  '0.1.0'
 }
 
-war {
+/*war {
 	archiveName = 'ROOT.war'
 	destinationDir = file('webapps')
-}
+}*/
 
 group = 'com.iot.api'
 version = '0.0.1-SNAPSHOT'
@@ -81,6 +81,7 @@ dependencies {
     }
 	
 	compile ('org.json:json:20180130')
+	compile('com.google.code.gson:gson:2.8.2')
 	
   	compile ('org.springframework.boot:spring-boot-starter-log4j2')
     
