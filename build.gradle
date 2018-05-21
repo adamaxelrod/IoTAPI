@@ -48,8 +48,14 @@ asciidoctor {
 }
 
 bootJar {
-    baseName = 'gs-rest-service'
+    baseName = 'iotapp-service'
     version =  '0.1.0'
+    
+    copy {
+		from "build/libs/"
+		into "tmp/src/"
+		include "**/*.jar"
+	}
 }
 
 /*war {
