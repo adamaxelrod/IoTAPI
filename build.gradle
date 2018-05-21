@@ -53,7 +53,7 @@ bootJar {
     
     copy {
 		from "build/libs/"
-		into "tmp/src/"
+		into "deployments/"
 		include "**/*.jar"
 	}
 }
