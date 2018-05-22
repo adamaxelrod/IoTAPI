@@ -17,6 +17,11 @@ For building and running the application you need:
 - [Gradle 4.5.1](https://gradle.org)
 - [MongoDB 3.6](https://www.mongodb.com)
 
+**NOTE: When running MongoDB 3.6 on Windows or Linux, you need to run the following command to ensure the aggregation/projection queries work as expected**
+```
+db.adminCommand( { setFeatureCompatibilityversion: "3.6" } );
+```
+
 ## Running the application locally
 
 Run the application locally using the Gradle wrapper (gradlew)
