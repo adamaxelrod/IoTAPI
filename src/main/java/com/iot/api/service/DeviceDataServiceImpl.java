@@ -96,17 +96,37 @@ public class DeviceDataServiceImpl implements DeviceDataServiceInterface {
 					if (dayQueryList != null && dayQueryList.size() == 0) {
 						//Query to see if there is data for this minute already
 						Query monthQuery = new Query(Criteria.where("name").is(info.getName()).and("yearData.monthData.monthTimestamp").is(DateUtil.getMonthDate(currDate)));						
-						List<DeviceData> monthQueryList = mongoTemplate.find(dayQuery, DeviceData.class);
+						List<DeviceData> monthQueryList = mongoTemplate.find(monthQuery, DeviceData.class);
+
+						DayData newDay = new DayData();
+						newDay.setDayTimestamp(DateUtil.getDayDate(currDate));
+						newDay.getHourData().add(newHour);
 						
 						if (monthQueryList != null && monthQueryList.size() == 0) {
-							/**
-							 * TODO
-							 */
+							//Query to see if there is data for this minute already
+							Query yearQuery = new Query(Criteria.where("name").is(info.getName()).and("yearData.yearTimestamp").is(DateUtil.getYearDate(currDate)));						
+							List<DeviceData> yearQueryList = mongoTemplate.find(yearQuery, DeviceData.class);
+
+							MonthData newMonth = new MonthData();
+							newMonth.setMonthTimestamp(DateUtil.getMonthDate(currDate));
+							newMonth.getDayData().add(newDay);
+														
+							if (yearQueryList != null && yearQueryList.size() == 0) {
+								YearData newYear = new YearData();
+								newYear.setYearTimestamp(DateUtil.getYearDate(currDate));
+								newYear.getMonthData().add(newMonth);
+								mongoTemplate.upsert(yearQuery, new Update().addToSet("yearData", yearQueryList.get(0)), DeviceData.class);
+							}
+							else {
+								Update yearUpdate = new Update();
+								yearUpdate.addToSet("yearData.monthData.$[]", newMonth);
+								mongoTemplate.upsert(yearQuery, yearUpdate, DeviceData.class);	
+							}							
 						}
 						else {
-							DayData newDay = new DayData();
-							newDay.setDayTimestamp(DateUtil.getDayDate(currDate));
-							newDay.getHourData().add(newHour);
+							Update monthUpdate = new Update();
+							monthUpdate.addToSet("yearData.monthData.0.dayData.$[]", newDay);
+							mongoTemplate.upsert(monthQuery, monthUpdate, DeviceData.class);	
 						}
 					}
 					//Day data exists, just add a new hour data point
